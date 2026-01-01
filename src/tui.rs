@@ -200,7 +200,8 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
                     let r = r_outer - dr as f64;
                     for d in 0..360 {
                         let a = (d as f64).to_radians();
-                        pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                        let xf = inner.height as f64 / inner.width as f64;
+                        pts.push((cx + r * a.cos() * xf, cy + r * a.sin()));
                     }
                 }
                 let canvas = Canvas::default()
@@ -306,7 +307,8 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
                     let r = r_outer - dr as f64;
                     for d in 0..360 {
                         let a = (d as f64).to_radians();
-                        pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                        let xf = inner.height as f64 / inner.width as f64;
+                        pts.push((cx + r * a.cos() * xf, cy + r * a.sin()));
                     }
                 }
                 let canvas = Canvas::default()
@@ -404,7 +406,8 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
                     let r = r_outer - dr as f64;
                     for d in 0..360 {
                         let a = (d as f64).to_radians();
-                        pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                        let xf = area.height as f64 / area.width as f64;
+                        pts.push((cx + r * a.cos() * xf, cy + r * a.sin()));
                     }
                 }
                 let canvas = Canvas::default()
@@ -438,7 +441,8 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
                     let r = r_outer - dr as f64;
                     for d in 0..360 {
                         let a = (d as f64).to_radians();
-                        pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                        let xf = inner.height as f64 / inner.width as f64;
+                        pts.push((cx + r * a.cos() * xf, cy + r * a.sin()));
                     }
                 }
                 let canvas = Canvas::default()
@@ -515,6 +519,32 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
                 .split(area);
             for (chunk, color) in stripes.iter().zip(stripe_colors.iter()) {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
+            }
+
+            if matches!(current_theme(), ThemeName::Intersex) {
+                let cx = area.width as f64 / 2.0;
+                let cy = area.height as f64 / 2.0;
+                let min_dim = area.width.min(area.height) as f64;
+                let r_outer = (min_dim * 0.35).max(6.0);
+                let thickness = (min_dim * 0.12).max(3.0);
+                let steps = thickness as i32;
+                // Aspect correction so it looks like a circle (not a “0”) on typical terminals
+                let xf = area.height as f64 / area.width as f64;
+                let mut pts: Vec<(f64, f64)> = Vec::with_capacity((360 * steps.max(1)) as usize);
+                for dr in 0..steps {
+                    let r = r_outer - dr as f64;
+                    for d in 0..360 {
+                        let a = (d as f64).to_radians();
+                        pts.push((cx + r * a.cos() * xf, cy + r * a.sin()));
+                    }
+                }
+                let canvas = Canvas::default()
+                    .x_bounds([0.0, area.width as f64])
+                    .y_bounds([0.0, area.height as f64])
+                    .paint(|ctx| {
+                        ctx.draw(&Points { coords: &pts, color: Color::Rgb(0x79, 0x02, 0xAA) });
+                    });
+                f.render_widget(canvas, area);
             }
 
             let block = Block::default()
