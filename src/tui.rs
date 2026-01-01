@@ -13,6 +13,7 @@ use ratatui::{
     Terminal,
 };
 use ratatui::widgets::canvas::{Canvas, Circle};
+use ratatui_core::symbols::marker::Marker;
 use std::io::{stdout, Stdout};
 use std::fs;
 use std::path::PathBuf;
@@ -199,6 +200,7 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
                 let canvas = Canvas::default()
                     .x_bounds([-1.0, 1.0])
                     .y_bounds([-ratio, ratio])
+                    .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
                         for i in 0..=6 {
@@ -295,6 +297,7 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
                 let canvas = Canvas::default()
                     .x_bounds([-1.0, 1.0])
                     .y_bounds([-ratio, ratio])
+                    .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
                         for i in 0..=6 {
@@ -392,6 +395,7 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
                 let canvas = Canvas::default()
                     .x_bounds([-1.0, 1.0])
                     .y_bounds([-ratio, ratio])
+                    .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
                         for i in 0..=6 {
@@ -475,6 +479,7 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
                 let canvas = Canvas::default()
                     .x_bounds([-1.0, 1.0])
                     .y_bounds([-ratio, ratio])
+                    .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
                         // Thick ring via multiple concentric circles
