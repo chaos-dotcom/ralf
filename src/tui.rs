@@ -12,6 +12,7 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
+use ratatui::widgets::canvas::{Canvas, Points};
 use std::io::{stdout, Stdout};
 use std::fs;
 use std::path::PathBuf;
@@ -185,6 +186,30 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
                 .border_style(Style::default().fg(border_fg));
             let inner = block.inner(area);
             f.render_widget(block, area);
+            // After: f.render_widget(block, area);
+            if matches!(current_theme(), ThemeName::Intersex) {
+                let inner = block.inner(area);
+                // Circle center in absolute area coordinates
+                let cx = (inner.x + inner.width / 2) as f64;
+                let cy = (inner.y + inner.height / 2) as f64;
+                let r = (inner.width.min(inner.height) as f64 * 0.25).max(4.0);
+                let points: Vec<(f64, f64)> = (0..360)
+                    .map(|d| {
+                        let a = (d as f64).to_radians();
+                        (cx + r * a.cos(), cy + r * a.sin())
+                    })
+                    .collect();
+                let canvas = Canvas::default()
+                    .x_bounds([0.0, area.width as f64])
+                    .y_bounds([0.0, area.height as f64])
+                    .paint(|ctx| {
+                        ctx.draw(&Points {
+                            coords: &points,
+                            color: Color::Rgb(0x79, 0x02, 0xAA), // intersex purple ring
+                        });
+                    });
+                f.render_widget(canvas, area);
+            }
             let text = Paragraph::new(buf.clone())
                 .style(Style::default().fg(Color::Black));
             f.render_widget(text, inner);
@@ -263,6 +288,29 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
                 .border_style(Style::default().fg(border_fg));
             let inner = block.inner(area);
             f.render_widget(block, area);
+            // After: f.render_widget(block, area);
+            if matches!(current_theme(), ThemeName::Intersex) {
+                let inner = block.inner(area);
+                let cx = (inner.x + inner.width / 2) as f64;
+                let cy = (inner.y + inner.height / 2) as f64;
+                let r = (inner.width.min(inner.height) as f64 * 0.25).max(4.0);
+                let points: Vec<(f64, f64)> = (0..360)
+                    .map(|d| {
+                        let a = (d as f64).to_radians();
+                        (cx + r * a.cos(), cy + r * a.sin())
+                    })
+                    .collect();
+                let canvas = Canvas::default()
+                    .x_bounds([0.0, area.width as f64])
+                    .y_bounds([0.0, area.height as f64])
+                    .paint(|ctx| {
+                        ctx.draw(&Points {
+                            coords: &points,
+                            color: Color::Rgb(0x79, 0x02, 0xAA),
+                        });
+                    });
+                f.render_widget(canvas, area);
+            }
 
             let height = inner.height as usize;
             let total = lines.len();
@@ -340,6 +388,29 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(border_fg));
             f.render_widget(block.clone(), area);
+            // After: f.render_widget(block.clone(), area);
+            if matches!(current_theme(), ThemeName::Intersex) {
+                let inner = block.inner(area);
+                let cx = (inner.x + inner.width / 2) as f64;
+                let cy = (inner.y + inner.height / 2) as f64;
+                let r = (inner.width.min(inner.height) as f64 * 0.25).max(4.0);
+                let points: Vec<(f64, f64)> = (0..360)
+                    .map(|d| {
+                        let a = (d as f64).to_radians();
+                        (cx + r * a.cos(), cy + r * a.sin())
+                    })
+                    .collect();
+                let canvas = Canvas::default()
+                    .x_bounds([0.0, area.width as f64])
+                    .y_bounds([0.0, area.height as f64])
+                    .paint(|ctx| {
+                        ctx.draw(&Points {
+                            coords: &points,
+                            color: Color::Rgb(0x79, 0x02, 0xAA),
+                        });
+                    });
+                f.render_widget(canvas, area);
+            }
 
             let inner = block.inner(area);
             let text = Paragraph::new(message.to_string()).style(Style::default().fg(Color::Black));
