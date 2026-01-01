@@ -29,6 +29,17 @@ pub fn resolve_machine_id(p: &paths::Paths) -> String {
             }
         }
     }
+    // Legacy marker migration: .alf_machine -> .ralf_machine
+    let legacy = p.repo_path.join(".alf_machine");
+    if legacy.exists() {
+        if let Ok(s) = fs::read_to_string(&legacy) {
+            let t = s.trim().to_string();
+            if !t.is_empty() {
+                let _ = fs::rename(&legacy, p.repo_path.join(".ralf_machine"));
+                return t;
+            }
+        }
+    }
     if let Ok(h) = std::env::var("HOSTNAME") {
         let t = h.trim().to_string();
         if !t.is_empty() {
@@ -68,6 +79,15 @@ pub fn load_and_merge(p: &paths::Paths) -> Result<String> {
         let overlay = fs::read_to_string(&local_path)?;
         let ob = parse(&overlay)?;
         blocks = merge(blocks, ob);
+    }
+    // Legacy local overlay fallback: alf.local.conf
+    if !local_path.exists() {
+        let legacy_local = p.repo_path.join("alf.local.conf");
+        if legacy_local.exists() {
+            let overlay = fs::read_to_string(&legacy_local)?;
+            let ob = parse(&overlay)?;
+            blocks = merge(blocks, ob);
+        }
     }
     Ok(serialize(&blocks))
 }

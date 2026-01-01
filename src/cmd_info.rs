@@ -46,6 +46,14 @@ pub fn run() -> Result<()> {
         std::env::var("ralf_ALIASES_FILE").unwrap_or_else(|_| "unset".into())
     );
     println!(
+        "  ALF_RC_FILE:       {}",
+        std::env::var("ALF_RC_FILE").unwrap_or_else(|_| "unset".into())
+    );
+    println!(
+        "  ALF_ALIASES_FILE:  {}",
+        std::env::var("ALF_ALIASES_FILE").unwrap_or_else(|_| "unset".into())
+    );
+    println!(
         "  ralf_MACHINE:      {}",
         std::env::var("ralf_MACHINE").unwrap_or_else(|_| "unset".into())
     );
