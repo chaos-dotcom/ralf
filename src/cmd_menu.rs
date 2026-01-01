@@ -1,7 +1,6 @@
 use anyhow::Result;
 use std::process::Command;
 use std::process::Stdio;
-use std::io::{self, Write};
 
 pub fn run() -> Result<()> {
     loop {

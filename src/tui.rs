@@ -188,7 +188,6 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
             f.render_widget(block, area);
             // After: f.render_widget(block, area);
             if matches!(current_theme(), ThemeName::Intersex) {
-                let inner = block.inner(area);
                 // Circle center in absolute area coordinates
                 let cx = (inner.x + inner.width / 2) as f64;
                 let cy = (inner.y + inner.height / 2) as f64;
@@ -248,7 +247,7 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
 }
 
 pub fn view_text(title: &str, body: &str) -> Result<()> {
-    use std::cmp::{max, min};
+    use std::cmp::min;
     enable_raw_mode()?;
     let mut out = stdout();
     execute!(out, EnterAlternateScreen)?;
@@ -290,7 +289,6 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
             f.render_widget(block, area);
             // After: f.render_widget(block, area);
             if matches!(current_theme(), ThemeName::Intersex) {
-                let inner = block.inner(area);
                 let cx = (inner.x + inner.width / 2) as f64;
                 let cy = (inner.y + inner.height / 2) as f64;
                 let r = (inner.width.min(inner.height) as f64 * 0.25).max(4.0);

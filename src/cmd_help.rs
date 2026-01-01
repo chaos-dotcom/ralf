@@ -60,7 +60,7 @@ pub fn run(topic: Option<String>) -> Result<()> {
     if let Some(t) = topic {
         // Prefer exact subcommand name
         let mut root = crate::cli::Cli::command();
-        if let Some(mut sub) = root.find_subcommand_mut(&t) {
+        if let Some(sub) = root.find_subcommand_mut(&t) {
             sub.print_long_help()?;
             println!();
             return Ok(());
@@ -80,7 +80,7 @@ pub fn run(topic: Option<String>) -> Result<()> {
         };
         if !canonical.is_empty() {
             let mut root2 = crate::cli::Cli::command();
-            if let Some(mut sub2) = root2.find_subcommand_mut(canonical) {
+            if let Some(sub2) = root2.find_subcommand_mut(canonical) {
                 sub2.print_long_help()?;
                 println!();
                 return Ok(());
