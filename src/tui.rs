@@ -12,7 +12,7 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
-use ratatui::widgets::canvas::{Canvas, Points};
+use ratatui::widgets::canvas::{Canvas, Points, Circle, Marker};
 use std::io::{stdout, Stdout};
 use std::fs;
 use std::path::PathBuf;
@@ -53,6 +53,13 @@ pub fn set_theme_by_name(name: &str) -> Result<()> {
 
 pub fn theme_options() -> &'static [&'static str] {
     &["Trans", "Lesbian", "Bisexual", "Non-binary", "Intersex", "Progress"]
+}
+
+fn theme_bg_color(t: ThemeName) -> Option<Color> {
+    match t {
+        ThemeName::Intersex => Some(Color::Rgb(0xFF, 0xD8, 0x00)),
+        _ => None,
+    }
 }
 
 fn theme_palette(t: ThemeName) -> (Vec<Color>, Color, Color) {
@@ -188,39 +195,28 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
             f.render_widget(block, area);
             // After: f.render_widget(block, area);
             if matches!(current_theme(), ThemeName::Intersex) {
-                // Solid purple O (thick ring) centered within the inner area
-                let cx = inner.width as f64 / 2.0;
-                let cy = inner.height as f64 / 2.0;
-                let min_dim = inner.width.min(inner.height) as f64;
-                let r_outer = (min_dim * 0.35).max(6.0);
-                let thickness = (min_dim * 0.12).max(3.0);
-                let steps = thickness as i32;
-                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * steps.max(1) as usize);
-                for dr in 0..steps {
-                    let r = r_outer - dr as f64;
-                    for d in 0..360 {
-                        let a = (d as f64).to_radians();
-                        let xf = inner.height as f64 / inner.width as f64;
-                        pts.push((cx + r * a.cos() * xf, cy + r * a.sin()));
-                    }
-                }
+                let ratio = inner.height.max(1) as f64 / inner.width.max(1) as f64;
                 let canvas = Canvas::default()
-                    .x_bounds([0.0, inner.width as f64])
-                    .y_bounds([0.0, inner.height as f64])
+                    .x_bounds([-1.0, 1.0])
+                    .y_bounds([-ratio, ratio])
+                    .marker(Marker::Braille)
                     .paint(|ctx| {
-                        ctx.draw(&Points {
-                            coords: &pts,
-                            color: Color::Rgb(0x79, 0x02, 0xAA), // intersex purple
-                        });
+                        let purple = Color::Rgb(0x79, 0x02, 0xAA);
+                        for i in 0..=6 {
+                            let r = 0.70 - (i as f64) * 0.015;
+                            ctx.draw(&Circle { x: 0.0, y: 0.0, radius: r, color: purple });
+                        }
                     });
                 f.render_widget(canvas, inner);
             }
-            let text = Paragraph::new(buf.clone())
-                .style(Style::default().fg(Color::Black));
+            let mut text = Paragraph::new(buf.clone()).style(Style::default().fg(Color::Black));
+            if let Some(bg) = theme_bg_color(current_theme()) {
+                text = text.style(Style::default().fg(Color::Black).bg(bg));
+            }
             f.render_widget(text, inner);
             let hint = Paragraph::new("Type text, Enter to submit, Esc to cancel, Ctrl-U to clear")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg).bg(Color::Reset));
+                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -296,29 +292,17 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
             f.render_widget(block, area);
             // After: f.render_widget(block, area);
             if matches!(current_theme(), ThemeName::Intersex) {
-                let cx = inner.width as f64 / 2.0;
-                let cy = inner.height as f64 / 2.0;
-                let min_dim = inner.width.min(inner.height) as f64;
-                let r_outer = (min_dim * 0.35).max(6.0);
-                let thickness = (min_dim * 0.12).max(3.0);
-                let steps = thickness as i32;
-                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * steps.max(1) as usize);
-                for dr in 0..steps {
-                    let r = r_outer - dr as f64;
-                    for d in 0..360 {
-                        let a = (d as f64).to_radians();
-                        let xf = inner.height as f64 / inner.width as f64;
-                        pts.push((cx + r * a.cos() * xf, cy + r * a.sin()));
-                    }
-                }
+                let ratio = inner.height.max(1) as f64 / inner.width.max(1) as f64;
                 let canvas = Canvas::default()
-                    .x_bounds([0.0, inner.width as f64])
-                    .y_bounds([0.0, inner.height as f64])
+                    .x_bounds([-1.0, 1.0])
+                    .y_bounds([-ratio, ratio])
+                    .marker(Marker::Braille)
                     .paint(|ctx| {
-                        ctx.draw(&Points {
-                            coords: &pts,
-                            color: Color::Rgb(0x79, 0x02, 0xAA),
-                        });
+                        let purple = Color::Rgb(0x79, 0x02, 0xAA);
+                        for i in 0..=6 {
+                            let r = 0.70 - (i as f64) * 0.015;
+                            ctx.draw(&Circle { x: 0.0, y: 0.0, radius: r, color: purple });
+                        }
                     });
                 f.render_widget(canvas, inner);
             }
@@ -328,12 +312,15 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
             let start = min(scroll, total.saturating_sub(height));
             let end = min(start + height, total);
             let visible = if start < end { &lines[start..end] } else { &[] };
-            let text = Paragraph::new(visible.join("\n")).style(Style::default().fg(Color::Black));
+            let mut text = Paragraph::new(visible.join("\n")).style(Style::default().fg(Color::Black));
+            if let Some(bg) = theme_bg_color(current_theme()) {
+                text = text.style(Style::default().fg(Color::Black).bg(bg));
+            }
             f.render_widget(text, inner);
 
             let hint = Paragraph::new("↑/↓ PgUp/PgDn Home/End to scroll, q/Esc/Enter to return")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg).bg(Color::Reset));
+                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -394,33 +381,6 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
             }
 
-            if matches!(current_theme(), ThemeName::Intersex) {
-                let cx = area.width as f64 / 2.0;
-                let cy = area.height as f64 / 2.0;
-                let min_dim = area.width.min(area.height) as f64;
-                let r_outer = (min_dim * 0.35).max(6.0);
-                let thickness = (min_dim * 0.12).max(3.0);
-                let steps = thickness as i32;
-                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * steps.max(1) as usize);
-                for dr in 0..steps {
-                    let r = r_outer - dr as f64;
-                    for d in 0..360 {
-                        let a = (d as f64).to_radians();
-                        let xf = area.height as f64 / area.width as f64;
-                        pts.push((cx + r * a.cos() * xf, cy + r * a.sin()));
-                    }
-                }
-                let canvas = Canvas::default()
-                    .x_bounds([0.0, area.width as f64])
-                    .y_bounds([0.0, area.height as f64])
-                    .paint(|ctx| {
-                        ctx.draw(&Points {
-                            coords: &pts,
-                            color: Color::Rgb(0x79, 0x02, 0xAA),
-                        });
-                    });
-                f.render_widget(canvas, area);
-            }
 
             let block = Block::default()
                 .title(Line::from(title).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
@@ -430,40 +390,31 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
             // After: f.render_widget(block.clone(), area);
             if matches!(current_theme(), ThemeName::Intersex) {
                 let inner = block.inner(area);
-                let cx = inner.width as f64 / 2.0;
-                let cy = inner.height as f64 / 2.0;
-                let min_dim = inner.width.min(inner.height) as f64;
-                let r_outer = (min_dim * 0.35).max(6.0);
-                let thickness = (min_dim * 0.12).max(3.0);
-                let steps = thickness as i32;
-                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * steps.max(1) as usize);
-                for dr in 0..steps {
-                    let r = r_outer - dr as f64;
-                    for d in 0..360 {
-                        let a = (d as f64).to_radians();
-                        let xf = inner.height as f64 / inner.width as f64;
-                        pts.push((cx + r * a.cos() * xf, cy + r * a.sin()));
-                    }
-                }
+                let ratio = inner.height.max(1) as f64 / inner.width.max(1) as f64;
                 let canvas = Canvas::default()
-                    .x_bounds([0.0, inner.width as f64])
-                    .y_bounds([0.0, inner.height as f64])
+                    .x_bounds([-1.0, 1.0])
+                    .y_bounds([-ratio, ratio])
+                    .marker(Marker::Braille)
                     .paint(|ctx| {
-                        ctx.draw(&Points {
-                            coords: &pts,
-                            color: Color::Rgb(0x79, 0x02, 0xAA),
-                        });
+                        let purple = Color::Rgb(0x79, 0x02, 0xAA);
+                        for i in 0..=6 {
+                            let r = 0.70 - (i as f64) * 0.015;
+                            ctx.draw(&Circle { x: 0.0, y: 0.0, radius: r, color: purple });
+                        }
                     });
                 f.render_widget(canvas, inner);
             }
 
             let inner = block.inner(area);
-            let text = Paragraph::new(message.to_string()).style(Style::default().fg(Color::Black));
+            let mut text = Paragraph::new(message.to_string()).style(Style::default().fg(Color::Black));
+            if let Some(bg) = theme_bg_color(current_theme()) {
+                text = text.style(Style::default().fg(Color::Black).bg(bg));
+            }
             f.render_widget(text, inner);
 
             let hint = Paragraph::new("Press any key to return")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg).bg(Color::Reset));
+                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -522,27 +473,24 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
             }
 
             if matches!(current_theme(), ThemeName::Intersex) {
-                let cx = area.width as f64 / 2.0;
-                let cy = area.height as f64 / 2.0;
-                let min_dim = area.width.min(area.height) as f64;
-                let r_outer = (min_dim * 0.35).max(6.0);
-                let thickness = (min_dim * 0.12).max(3.0);
-                let steps = thickness as i32;
-                // Aspect correction so it looks like a circle (not a “0”) on typical terminals
-                let xf = area.height as f64 / area.width as f64;
-                let mut pts: Vec<(f64, f64)> = Vec::with_capacity((360 * steps.max(1)) as usize);
-                for dr in 0..steps {
-                    let r = r_outer - dr as f64;
-                    for d in 0..360 {
-                        let a = (d as f64).to_radians();
-                        pts.push((cx + r * a.cos() * xf, cy + r * a.sin()));
-                    }
-                }
+                // Aspect-correct circle: world space is square in X, scaled in Y by rows/cols
+                let ratio = area.height.max(1) as f64 / area.width.max(1) as f64;
                 let canvas = Canvas::default()
-                    .x_bounds([0.0, area.width as f64])
-                    .y_bounds([0.0, area.height as f64])
+                    .x_bounds([-1.0, 1.0])
+                    .y_bounds([-ratio, ratio])
+                    .marker(Marker::Braille)
                     .paint(|ctx| {
-                        ctx.draw(&Points { coords: &pts, color: Color::Rgb(0x79, 0x02, 0xAA) });
+                        let purple = Color::Rgb(0x79, 0x02, 0xAA);
+                        // Thick ring via multiple concentric circles
+                        for i in 0..=6 {
+                            let r = 0.70 - (i as f64) * 0.015;
+                            ctx.draw(&Circle {
+                                x: 0.0,
+                                y: 0.0,
+                                radius: r,
+                                color: purple,
+                            });
+                        }
                     });
                 f.render_widget(canvas, area);
             }
@@ -568,12 +516,15 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
                 })
                 .collect();
 
-            let list = List::new(items_widgets).block(block);
+            let mut list = List::new(items_widgets).block(block);
+            if let Some(bg) = theme_bg_color(current_theme()) {
+                list = list.style(Style::default().bg(bg));
+            }
             f.render_widget(list, area);
 
             let hint = Paragraph::new("Use ↑/↓ to move, Enter to select, Esc to abort")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg).bg(Color::Reset));
+                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
