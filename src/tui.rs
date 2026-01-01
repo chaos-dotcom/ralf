@@ -199,12 +199,14 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
                 let ratio = inner.height.max(1) as f64 / inner.width.max(1) as f64;
                 let canvas = Canvas::default()
                     .x_bounds([-1.0, 1.0])
-                    .y_bounds([-ratio, ratio])
+                    .y_bounds([-ratio * 0.6, ratio * 0.6])
                     .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
-                        for i in 0..=6 {
-                            let r = 0.70 - (i as f64) * 0.015;
+                        let base = 0.35;
+                        let step = 0.01;
+                        for i in 0..=4 {
+                            let r = base - (i as f64) * step;
                             ctx.draw(&Circle { x: 0.0, y: 0.0, radius: r, color: purple });
                         }
                     });
@@ -296,12 +298,14 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
                 let ratio = inner.height.max(1) as f64 / inner.width.max(1) as f64;
                 let canvas = Canvas::default()
                     .x_bounds([-1.0, 1.0])
-                    .y_bounds([-ratio, ratio])
+                    .y_bounds([-ratio * 0.6, ratio * 0.6])
                     .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
-                        for i in 0..=6 {
-                            let r = 0.70 - (i as f64) * 0.015;
+                        let base = 0.35;
+                        let step = 0.01;
+                        for i in 0..=4 {
+                            let r = base - (i as f64) * step;
                             ctx.draw(&Circle { x: 0.0, y: 0.0, radius: r, color: purple });
                         }
                     });
@@ -394,12 +398,14 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
                 let ratio = inner.height.max(1) as f64 / inner.width.max(1) as f64;
                 let canvas = Canvas::default()
                     .x_bounds([-1.0, 1.0])
-                    .y_bounds([-ratio, ratio])
+                    .y_bounds([-ratio * 0.6, ratio * 0.6])
                     .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
-                        for i in 0..=6 {
-                            let r = 0.70 - (i as f64) * 0.015;
+                        let base = 0.35;
+                        let step = 0.01;
+                        for i in 0..=4 {
+                            let r = base - (i as f64) * step;
                             ctx.draw(&Circle { x: 0.0, y: 0.0, radius: r, color: purple });
                         }
                     });
@@ -478,13 +484,14 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
                 let ratio = area.height.max(1) as f64 / area.width.max(1) as f64;
                 let canvas = Canvas::default()
                     .x_bounds([-1.0, 1.0])
-                    .y_bounds([-ratio, ratio])
+                    .y_bounds([-ratio * 0.6, ratio * 0.6]) // shorter (wider ellipse)
                     .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
-                        // Thick ring via multiple concentric circles
-                        for i in 0..=6 {
-                            let r = 0.70 - (i as f64) * 0.015;
+                        let base = 0.35;   // half the previous size
+                        let step = 0.01;   // thinner stroke layers
+                        for i in 0..=4 {
+                            let r = base - (i as f64) * step;
                             ctx.draw(&Circle {
                                 x: 0.0,
                                 y: 0.0,
