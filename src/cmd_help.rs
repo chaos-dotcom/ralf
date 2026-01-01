@@ -65,19 +65,22 @@ pub fn run(topic: Option<String>) -> Result<()> {
             println!();
             return Ok(());
         }
-        // Fallback: resolve known aliases (e.g., c, d, u, g, s, e, w, m, h)
-        let mut root = crate::cli::Cli::command();
-        if let Some(name) = root
-            .get_subcommands()
-            .find(|s| {
-                s.get_all_aliases()
-                    .map(|mut it| it.any(|a| a == t))
-                    .unwrap_or(false)
-            })
-            .map(|s| s.get_name().to_string())
-        {
+        // Fallback: resolve known aliases (shortcuts)
+        let canonical = match t.as_str() {
+            "c" => "connect",
+            "d" | "pull" => "download",
+            "u" | "push" => "upload",
+            "g" => "generate",
+            "s" => "save",
+            "e" => "edit",
+            "w" => "which",
+            "m" => "machine",
+            "h" => "help",
+            _ => "",
+        };
+        if !canonical.is_empty() {
             let mut root2 = crate::cli::Cli::command();
-            if let Some(mut sub2) = root2.find_subcommand_mut(&name) {
+            if let Some(mut sub2) = root2.find_subcommand_mut(canonical) {
                 sub2.print_long_help()?;
                 println!();
                 return Ok(());

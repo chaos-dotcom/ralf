@@ -44,7 +44,7 @@ pub fn run(args: ConnectArgs) -> Result<()> {
     let rc_file = paths::env_rc_file();
 
     // Non-interactive flags
-    let mut accepted: bool;
+    let accepted: bool;
     if !force_tui && args.ssh {
         if partial_github {
             repo_url = format!("git@github.com:{}", repo_url);
