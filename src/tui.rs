@@ -117,6 +117,148 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
     Ok(res)
 }
 
+pub fn view_text(title: &str, body: &str) -> Result<()> {
+    use std::cmp::{max, min};
+    enable_raw_mode()?;
+    let mut out = stdout();
+    execute!(out, EnterAlternateScreen)?;
+    let backend = CrosstermBackend::new(out);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.clear()?;
+
+    let lines: Vec<String> = body.lines().map(|s| s.to_string()).collect();
+    let mut scroll: usize = 0;
+
+    let res = loop {
+        terminal.draw(|f| {
+            let area = f.area();
+            // Background stripes
+            let stripes = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                ])
+                .split(area);
+            let stripe_colors = [TRANS_BLUE, TRANS_PINK, TRANS_WHITE, TRANS_PINK, TRANS_BLUE];
+            for (chunk, color) in stripes.iter().zip(stripe_colors.iter()) {
+                f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
+            }
+
+            let block = Block::default()
+                .title(Line::from(title).style(Style::default().fg(TRANS_PINK).add_modifier(Modifier::BOLD)))
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(TRANS_BLUE));
+            let inner = block.inner(area);
+            f.render_widget(block, area);
+
+            let height = inner.height as usize;
+            let total = lines.len();
+            let start = min(scroll, total.saturating_sub(height));
+            let end = min(start + height, total);
+            let visible = if start < end { &lines[start..end] } else { &[] };
+            let text = Paragraph::new(visible.join("\n")).style(Style::default().fg(Color::Black));
+            f.render_widget(text, inner);
+
+            let hint = Paragraph::new("↑/↓ PgUp/PgDn Home/End to scroll, q/Esc/Enter to return")
+                .alignment(Alignment::Center)
+                .style(Style::default().fg(TRANS_PINK).bg(Color::Reset));
+            let hint_area = ratatui::layout::Rect {
+                x: area.x,
+                y: area.y.saturating_add(area.height.saturating_sub(2)),
+                width: area.width,
+                height: 1,
+            };
+            f.render_widget(hint, hint_area);
+        })?;
+
+        if event::poll(std::time::Duration::from_millis(250))? {
+            if let Event::Key(k) = event::read()? {
+                match k.code {
+                    KeyCode::Esc | KeyCode::Enter | KeyCode::Char('q') => break,
+                    KeyCode::Up => scroll = scroll.saturating_sub(1),
+                    KeyCode::Down => scroll = scroll.saturating_add(1),
+                    KeyCode::PageUp => scroll = scroll.saturating_sub(10),
+                    KeyCode::PageDown => scroll = scroll.saturating_add(10),
+                    KeyCode::Home => scroll = 0,
+                    KeyCode::End => scroll = usize::MAX / 2, // will be clamped on draw
+                    _ => {}
+                }
+            }
+        }
+    };
+
+    cleanup(terminal)?;
+    Ok(res)
+}
+
+pub fn notify(title: &str, message: &str) -> Result<()> {
+    enable_raw_mode()?;
+    let mut out = stdout();
+    execute!(out, EnterAlternateScreen)?;
+    let backend = CrosstermBackend::new(out);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.clear()?;
+
+    let _ = loop {
+        terminal.draw(|f| {
+            let area = f.area();
+            // Background stripes
+            let stripes = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                ])
+                .split(area);
+            let stripe_colors = [TRANS_BLUE, TRANS_PINK, TRANS_WHITE, TRANS_PINK, TRANS_BLUE];
+            for (chunk, color) in stripes.iter().zip(stripe_colors.iter()) {
+                f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
+            }
+
+            let block = Block::default()
+                .title(Line::from(title).style(Style::default().fg(TRANS_PINK).add_modifier(Modifier::BOLD)))
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(TRANS_BLUE));
+            f.render_widget(block.clone(), area);
+
+            let inner = block.inner(area);
+            let text = Paragraph::new(message.to_string()).style(Style::default().fg(Color::Black));
+            f.render_widget(text, inner);
+
+            let hint = Paragraph::new("Press any key to return")
+                .alignment(Alignment::Center)
+                .style(Style::default().fg(TRANS_PINK).bg(Color::Reset));
+            let hint_area = ratatui::layout::Rect {
+                x: area.x,
+                y: area.y.saturating_add(area.height.saturating_sub(2)),
+                width: area.width,
+                height: 1,
+            };
+            f.render_widget(hint, hint_area);
+        })?;
+
+        if event::poll(std::time::Duration::from_millis(250))? {
+            if let Event::Key(_) = event::read()? {
+                break;
+            }
+        }
+    };
+
+    // Close
+    // Reuse cleanup to restore terminal
+    let backend = CrosstermBackend::new(stdout());
+    let terminal = Terminal::new(backend)?;
+    cleanup(terminal)?;
+    Ok(())
+}
+
 fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
     enable_raw_mode()?;
     let mut out = stdout();

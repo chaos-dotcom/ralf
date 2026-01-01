@@ -1,5 +1,6 @@
 use anyhow::Result;
 use std::process::Command;
+use std::process::Stdio;
 use std::io::{self, Write};
 
 pub fn run() -> Result<()> {
@@ -21,27 +22,27 @@ pub fn run() -> Result<()> {
         match sel {
             Some(0) => {
                 if let Some(repo) = crate::tui::input("Enter repository (user[/repo] or full URL), Esc to cancel")? {
-                    run_child(&["connect", &repo, "--tui"])?;
+                    run_child_passthrough(&["connect", &repo, "--tui"])?;
                 }
             }
-            Some(1) => { run_child(&["download"])?; }
-            Some(2) => { run_child(&["upload"])?; }
-            Some(3) => { run_child(&["generate"])?; }
-            Some(4) => { run_child(&["save"])?; }
-            Some(5) => { run_child(&["edit"])?; }
-            Some(6) => { run_child(&["edit", "machine"])?; }
+            Some(1) => { run_child_capture(&["download"])?; }
+            Some(2) => { run_child_capture(&["upload"])?; }
+            Some(3) => { run_child_capture(&["generate"])?; }
+            Some(4) => { run_child_capture(&["save"])?; }
+            Some(5) => { run_child_passthrough(&["edit"])?; }
+            Some(6) => { run_child_passthrough(&["edit", "machine"])?; }
             Some(7) => {
                 if let Some(code) = crate::tui::input("Enter alias code (top-level), Esc to cancel")? {
                     let sub = crate::tui::input("Enter subcommand (optional), Enter for none, Esc to cancel")?;
                     if let Some(s) = sub.filter(|s| !s.is_empty()) {
-                        run_child(&["which", &code, &s])?;
+                        run_child_capture(&["which", &code, &s])?;
                     } else {
-                        run_child(&["which", &code])?;
+                        run_child_capture(&["which", &code])?;
                     }
                 }
             }
-            Some(8) => { run_child(&["info"])?; }
-            Some(9) => { run_child(&["help"])?; }
+            Some(8) => { run_child_capture(&["info"])?; }
+            Some(9) => { run_child_capture(&["help"])?; }
             Some(10) | None => break,
             _ => {}
         }
@@ -49,13 +50,38 @@ pub fn run() -> Result<()> {
     Ok(())
 }
 
-fn run_child(args: &[&str]) -> Result<()> {
+fn run_child_capture(args: &[&str]) -> Result<()> {
     let exe = std::env::current_exe()?;
-    let _status = Command::new(exe).args(args).status()?;
-    // Let the user read output before returning to the menu
-    print!("\nPress Enter to return to the main menu...");
-    io::stdout().flush().ok();
-    let mut s = String::new();
-    let _ = std::io::stdin().read_line(&mut s);
-    Ok(())
+    // Capture both stdout and stderr
+    let out = Command::new(exe)
+        .args(args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()?;
+    let mut body = String::new();
+    body.push_str(&format!("$ ralf {}\n\n", args.join(" ")));
+    if !out.stdout.is_empty() {
+        body.push_str(&String::from_utf8_lossy(&out.stdout));
+        if !body.ends_with('\n') { body.push('\n'); }
+    }
+    if !out.stderr.is_empty() {
+        if !body.ends_with('\n') { body.push('\n'); }
+        body.push_str("--- stderr ---\n");
+        body.push_str(&String::from_utf8_lossy(&out.stderr));
+        if !body.ends_with('\n') { body.push('\n'); }
+    }
+    let status = out.status.code().unwrap_or_default();
+    body.push_str(&format!("\n(exit status: {})\n", status));
+    crate::tui::view_text("ralf output", &body)
+}
+
+fn run_child_passthrough(args: &[&str]) -> Result<()> {
+    let exe = std::env::current_exe()?;
+    let status = Command::new(exe).args(args).status()?;
+    let msg = if let Some(code) = status.code() {
+        format!("Command exited with status {}", code)
+    } else {
+        "Command terminated".to_string()
+    };
+    crate::tui::notify("Completed", &msg)
 }
