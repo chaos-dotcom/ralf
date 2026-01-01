@@ -22,6 +22,8 @@ use dirs::home_dir;
 const TRANS_BLUE: Color = Color::Rgb(0x5B, 0xCF, 0xFA);   // #5BCFFA
 const TRANS_PINK: Color = Color::Rgb(0xF5, 0xA9, 0xB8);   // #F5A9B8
 const TRANS_WHITE: Color = Color::Rgb(0xFF, 0xFF, 0xFF);  // #FFFFFF
+const INTERSEX_X_SCALE: f64 = 0.70;  // narrower horizontally
+const INTERSEX_Y_SCALE: f64 = 0.50;  // twice as tall (smaller world Y-range => larger on screen)
 
 enum ThemeName { Trans, Lesbian, Bisexual, NonBinary, Intersex, Progress }
 
@@ -196,10 +198,10 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
             f.render_widget(block, area);
             // After: f.render_widget(block, area);
             if matches!(current_theme(), ThemeName::Intersex) {
-                let ratio = inner.height.max(1) as f64 / inner.width.max(1) as f64;
+                let aspect = inner.width.max(1) as f64 / inner.height.max(1) as f64;
                 let canvas = Canvas::default()
-                    .x_bounds([-1.0, 1.0])
-                    .y_bounds([-ratio * 0.6, ratio * 0.6])
+                    .x_bounds([-INTERSEX_X_SCALE, INTERSEX_X_SCALE])
+                    .y_bounds([-aspect * INTERSEX_Y_SCALE, aspect * INTERSEX_Y_SCALE])
                     .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
@@ -295,10 +297,10 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
             f.render_widget(block, area);
             // After: f.render_widget(block, area);
             if matches!(current_theme(), ThemeName::Intersex) {
-                let ratio = inner.height.max(1) as f64 / inner.width.max(1) as f64;
+                let aspect = inner.width.max(1) as f64 / inner.height.max(1) as f64;
                 let canvas = Canvas::default()
-                    .x_bounds([-1.0, 1.0])
-                    .y_bounds([-ratio * 0.6, ratio * 0.6])
+                    .x_bounds([-INTERSEX_X_SCALE, INTERSEX_X_SCALE])
+                    .y_bounds([-aspect * INTERSEX_Y_SCALE, aspect * INTERSEX_Y_SCALE])
                     .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
@@ -395,10 +397,10 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
             // After: f.render_widget(block.clone(), area);
             if matches!(current_theme(), ThemeName::Intersex) {
                 let inner = block.inner(area);
-                let ratio = inner.height.max(1) as f64 / inner.width.max(1) as f64;
+                let aspect = inner.width.max(1) as f64 / inner.height.max(1) as f64;
                 let canvas = Canvas::default()
-                    .x_bounds([-1.0, 1.0])
-                    .y_bounds([-ratio * 0.6, ratio * 0.6])
+                    .x_bounds([-INTERSEX_X_SCALE, INTERSEX_X_SCALE])
+                    .y_bounds([-aspect * INTERSEX_Y_SCALE, aspect * INTERSEX_Y_SCALE])
                     .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
@@ -481,10 +483,10 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
 
             if matches!(current_theme(), ThemeName::Intersex) {
                 // Aspect-correct circle: world space is square in X, scaled in Y by rows/cols
-                let ratio = area.height.max(1) as f64 / area.width.max(1) as f64;
+                let aspect = area.width.max(1) as f64 / area.height.max(1) as f64;
                 let canvas = Canvas::default()
-                    .x_bounds([-1.0, 1.0])
-                    .y_bounds([-ratio * 0.6, ratio * 0.6]) // shorter (wider ellipse)
+                    .x_bounds([-INTERSEX_X_SCALE, INTERSEX_X_SCALE])
+                    .y_bounds([-aspect * INTERSEX_Y_SCALE, aspect * INTERSEX_Y_SCALE])
                     .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
