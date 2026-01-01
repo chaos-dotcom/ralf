@@ -18,7 +18,7 @@ fn generate_when_config_present() {
         .stdout(predicate::str::contains("case \"$1\" in"))
         .stdout(predicate::str::contains("# Completions"))
         .stdout(predicate::str::contains("if [ -n \"$ZSH_VERSION\" ]"))
-        .stdout(predicate::str::contains("complete -W \"s c l p\" g"))
+        .stdout(predicate::str::contains("complete -W \"s l p\" g"))
         .stdout(predicate::str::contains("complete -W \"again\" say"))
         .stdout(predicate::str::contains("complete -W \"ls deploy upd\" dc"));
 }

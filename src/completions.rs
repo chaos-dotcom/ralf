@@ -3,6 +3,7 @@ use regex::Regex;
 use std::fs;
 use std::path::Path;
 
+#[allow(dead_code)]
 pub fn generate_completions(config_file: &Path) -> Result<String> {
     let text = fs::read_to_string(config_file)?;
     let ali1_re = Regex::new(r"^([a-z0-9\-]+):")?;

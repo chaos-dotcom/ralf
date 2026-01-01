@@ -9,8 +9,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 pub fn cmd() -> Command {
-    use assert_cmd::cargo::cargo_bin;
-    Command::new(cargo_bin!("ralf"))
+    Command::new(assert_cmd::cargo::cargo_bin!("ralf"))
 }
 
 pub fn fixtures_root() -> PathBuf {

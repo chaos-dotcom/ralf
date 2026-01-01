@@ -9,7 +9,7 @@ pub fn run(args: ConnectArgs) -> Result<()> {
     let only_user = !input.contains(':') && !input.contains('/');
     let mut alt_repo_url: Option<String> = None;
     let mut partial_github = false;
-    let mut repo_url = String::new();
+    let mut repo_url: String;
 
     if input.contains(':') {
         repo_url = input; // full URL
@@ -41,7 +41,7 @@ pub fn run(args: ConnectArgs) -> Result<()> {
     let rc_file = paths::env_rc_file();
 
     // Non-interactive flags
-    let mut accepted = false;
+    let mut accepted: bool;
     if args.ssh {
         if partial_github {
             repo_url = format!("git@github.com:{}", repo_url);
@@ -143,7 +143,6 @@ pub fn run(args: ConnectArgs) -> Result<()> {
                     dest = alt_dest;
                 }
                 gitwrap::clone(&alt, &dest)?;
-                repo_url = alt;
             } else {
                 primary?;
             }
