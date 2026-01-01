@@ -131,9 +131,7 @@ fn theme_palette(t: ThemeName) -> (Vec<Color>, Color, Color) {
 // Helper: compute x/y bounds for a pixel-perfect circle in Canvas world space
 fn circle_bounds_for(area: ratatui::layout::Rect, x_scale: f64, y_scale: f64) -> ([f64; 2], [f64; 2]) {
     // aspect = height/width so that a circle in world coords looks circular on screen
-    let aspect_cells = area.height.max(1) as f64 / area.width.max(1) as f64;
-    let braille_correction = 0.5; // Braille has 4 rows x 2 cols → halve Y to look circular
-    let aspect = aspect_cells * braille_correction;
+    let aspect = area.height.max(1) as f64 / area.width.max(1) as f64;
     ([-x_scale, x_scale], [-aspect * y_scale, aspect * y_scale])
 }
 
@@ -221,11 +219,14 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
                     });
                 f.render_widget(canvas, inner);
             }
-            let text = Paragraph::new(buf.clone()).style(Style::default().fg(Color::Black));
+            let mut text = Paragraph::new(buf.clone()).style(Style::default().fg(Color::Black));
+            if let Some(bg) = theme_bg_color(current_theme()) {
+                text = text.style(Style::default().fg(Color::Black).bg(bg));
+            }
             f.render_widget(text, inner);
             let hint = Paragraph::new("Type text, Enter to submit, Esc to cancel, Ctrl-U to clear")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg));
+                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -323,12 +324,15 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
             let start = min(scroll, total.saturating_sub(height));
             let end = min(start + height, total);
             let visible = if start < end { &lines[start..end] } else { &[] };
-            let text = Paragraph::new(visible.join("\n")).style(Style::default().fg(Color::Black));
+            let mut text = Paragraph::new(visible.join("\n")).style(Style::default().fg(Color::Black));
+            if let Some(bg) = theme_bg_color(current_theme()) {
+                text = text.style(Style::default().fg(Color::Black).bg(bg));
+            }
             f.render_widget(text, inner);
 
             let hint = Paragraph::new("↑/↓ PgUp/PgDn Home/End to scroll, q/Esc/Enter to return")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg));
+                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -416,12 +420,15 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
             }
 
             let inner = block.inner(area);
-            let text = Paragraph::new(message.to_string()).style(Style::default().fg(Color::Black));
+            let mut text = Paragraph::new(message.to_string()).style(Style::default().fg(Color::Black));
+            if let Some(bg) = theme_bg_color(current_theme()) {
+                text = text.style(Style::default().fg(Color::Black).bg(bg));
+            }
             f.render_widget(text, inner);
 
             let hint = Paragraph::new("Press any key to return")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg));
+                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -524,12 +531,15 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
                 })
                 .collect();
 
-            let list = List::new(items_widgets).block(block);
+            let mut list = List::new(items_widgets).block(block);
+            if let Some(bg) = theme_bg_color(current_theme()) {
+                list = list.style(Style::default().bg(bg));
+            }
             f.render_widget(list, area);
 
             let hint = Paragraph::new("Use ↑/↓ to move, Enter to select, Esc to abort")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg));
+                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
