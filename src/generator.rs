@@ -24,7 +24,6 @@ pub fn generate_config() -> Result<String> {
     let mut lastcmd: Option<String> = None;
     let mut state = State::Simple;
     let mut case_open = false;
-    let mut current_ali1 = String::new();
 
     for line in text.lines() {
         if let Some(caps) = re.captures(line) {
@@ -36,17 +35,15 @@ pub fn generate_config() -> Result<String> {
                 // Flush previous alias block
                 generate_last_cmd(&mut out, lastcmd.take(), &mut state, &mut case_open);
 
-                current_ali1 = alias.clone();
-
                 // Rewrite self-referencing commands
-                let local_re = Regex::new(&format!(r"^{}( +|$)", regex::escape(&current_ali1)))?;
+                let local_re = Regex::new(&format!(r"^{}( +|$)", regex::escape(&alias)))?;
                 if local_re.is_match(&cmd) {
                     cmd = format!("command {}", cmd);
                 }
 
                 out.push_str(&format!(
                     "\nunalias {} 1>/dev/null 2>&1\n{}() {{\n",
-                    current_ali1, current_ali1
+                    alias, alias
                 ));
                 lastcmd = Some(cmd);
             } else {
@@ -124,6 +121,7 @@ fn generate_last_cmd(
     }
 }
 
+#[allow(dead_code)]
 pub fn has_subcommands(config_file: &Path) -> Result<bool> {
     let re = Regex::new(r"^ +([a-z0-9\-]+):")?;
     let text = fs::read_to_string(config_file)?;

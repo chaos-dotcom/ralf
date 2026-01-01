@@ -3,7 +3,6 @@ use crate::gitwrap;
 use crate::paths;
 use crate::tui;
 use anyhow::Result;
-use std::path::PathBuf;
 
 pub fn run(args: ConnectArgs) -> Result<()> {
     let input = args.repo;

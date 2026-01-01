@@ -1,6 +1,5 @@
 use anyhow::Result;
 use regex::Regex;
-use std::fs;
 
 pub fn run(code: String, subcode: Option<String>) -> Result<()> {
     let p = crate::paths::find_config_or_exit()?;

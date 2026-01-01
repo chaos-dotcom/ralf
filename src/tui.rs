@@ -50,7 +50,7 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
 
     let res = loop {
         terminal.draw(|f| {
-            let size = f.size();
+            let area = f.area();
 
             let block = Block::default().title(title).borders(Borders::ALL);
 
@@ -68,14 +68,14 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
                 .collect();
 
             let list = List::new(items_widgets).block(block);
-            f.render_widget(list, size);
+            f.render_widget(list, area);
 
             let hint = Paragraph::new("Use ↑/↓ to move, Enter to select, Esc to abort")
                 .alignment(Alignment::Center);
             let hint_area = ratatui::layout::Rect {
-                x: size.x,
-                y: size.y.saturating_add(size.height.saturating_sub(2)),
-                width: size.width,
+                x: area.x,
+                y: area.y.saturating_add(area.height.saturating_sub(2)),
+                width: area.width,
                 height: 1,
             };
             f.render_widget(hint, hint_area);

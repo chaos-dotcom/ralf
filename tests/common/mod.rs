@@ -1,3 +1,4 @@
+#![allow(dead_code, unused_imports)]
 use assert_cmd::prelude::*;
 use assert_fs::prelude::*;
 use assert_fs::TempDir;
@@ -8,7 +9,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 pub fn cmd() -> Command {
-    Command::cargo_bin("ralf").expect("binary ralf not found")
+    use assert_cmd::cargo::cargo_bin;
+    Command::new(cargo_bin!("ralf"))
 }
 
 pub fn fixtures_root() -> PathBuf {

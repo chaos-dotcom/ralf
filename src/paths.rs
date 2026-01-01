@@ -47,6 +47,7 @@ pub fn find_config_or_exit() -> anyhow::Result<Paths> {
     let rc_file = env_rc_file();
     let aliases_file = env_aliases_file();
     let cwd = std::env::current_dir()?;
+    let rc_env_set = std::env::var("ralf_RC_FILE").is_ok() || std::env::var("ALF_RC_FILE").is_ok();
 
     // Bash parity:
     // repo_path defaults to "$PWD/ralf-conf"
@@ -54,7 +55,7 @@ pub fn find_config_or_exit() -> anyhow::Result<Paths> {
     let mut repo_path = cwd.join("ralf-conf");
     let mut config_file = cwd.join("ralf.conf");
 
-    if rc_file.exists() {
+    if rc_env_set && rc_file.exists() {
         let content = fs::read_to_string(&rc_file)?.trim().to_string();
         if !content.is_empty() {
             repo_path = PathBuf::from(content);
@@ -154,7 +155,7 @@ pub fn find_config_or_exit() -> anyhow::Result<Paths> {
     }
 
     // If rc file is .alfrc, migrate to .ralfrc (if not already present)
-    if rc_file
+    if rc_env_set && rc_file
         .file_name()
         .map(|n| n == ".alfrc")
         .unwrap_or(false)
@@ -181,7 +182,7 @@ pub fn find_config_or_exit() -> anyhow::Result<Paths> {
     }
 
     // If anything migrated, ensure rc file content points to the new repo_path
-    if migrated {
+    if migrated && rc_env_set && rc_file.exists() {
         if let Some(parent) = rc_file.parent() {
             fs::create_dir_all(parent)?;
         }
