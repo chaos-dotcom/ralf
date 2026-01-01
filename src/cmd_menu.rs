@@ -11,6 +11,7 @@ pub fn run() -> Result<()> {
         "Edit machine config",
         "Which alias",
         "Info",
+        "Help",
         "Exit",
     ];
     let sel = crate::tui::select("ralf — choose an action", &items)?;
@@ -35,6 +36,7 @@ pub fn run() -> Result<()> {
             }
         }
         Some(8) => { crate::cmd_info::run()?; }
+        Some(9) => { crate::cmd_help::run(None)?; }
         _ => {}
     }
     Ok(())

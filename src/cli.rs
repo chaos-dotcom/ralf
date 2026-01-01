@@ -36,6 +36,9 @@ pub enum Commands {
     #[command(alias = "m")]
     Machine { name: Option<String> },
 
+    #[command(alias = "h")]
+    Help { topic: Option<String> },
+
     Upgrade,
     Info,
 }
