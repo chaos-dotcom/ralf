@@ -16,6 +16,7 @@ pub fn run() -> Result<()> {
             "Which alias",
             "Info",
             "Help",
+            "Theme",
             "Exit",
         ];
         let sel = crate::tui::select("ralf — choose an action", &items)?;
@@ -43,7 +44,8 @@ pub fn run() -> Result<()> {
             }
             Some(8) => { run_child_capture(&["info"])?; }
             Some(9) => { run_child_capture(&["help"])?; }
-            Some(10) | None => break,
+            Some(10) => { run_theme_settings()?; }
+            Some(11) | None => break,
             _ => {}
         }
     }
@@ -84,4 +86,27 @@ fn run_child_passthrough(args: &[&str]) -> Result<()> {
         "Command terminated".to_string()
     };
     crate::tui::notify("Completed", &msg)
+}
+
+fn run_theme_settings() -> Result<()> {
+    let options = crate::tui::theme_options();
+    if let Some(idx) = crate::tui::select("Choose a background theme", options)? {
+        let name = options[idx];
+        if name != "Cancel" {
+            // map display to slug
+            let slug = match name {
+                "Trans" => "trans",
+                "Lesbian" => "lesbian",
+                "Bisexual" => "bisexual",
+                "Non-binary" => "non-binary",
+                "Intersex" => "intersex",
+                "Progress" => "progress",
+                _ => "trans",
+            };
+            crate::tui::set_theme_by_name(slug)?;
+            // The next menu render will show the new background
+            crate::tui::notify("Theme updated", &format!("Theme set to {}", name))?;
+        }
+    }
+    Ok(())
 }

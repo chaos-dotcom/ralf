@@ -13,10 +13,111 @@ use ratatui::{
     Terminal,
 };
 use std::io::{stdout, Stdout};
+use std::fs;
+use std::path::PathBuf;
+use dirs::home_dir;
 
 const TRANS_BLUE: Color = Color::Rgb(0x5B, 0xCF, 0xFA);   // #5BCFFA
 const TRANS_PINK: Color = Color::Rgb(0xF5, 0xA9, 0xB8);   // #F5A9B8
 const TRANS_WHITE: Color = Color::Rgb(0xFF, 0xFF, 0xFF);  // #FFFFFF
+
+enum ThemeName { Trans, Lesbian, Bisexual, NonBinary, Intersex, Progress }
+
+fn theme_file() -> PathBuf {
+    home_dir().unwrap_or_default().join(".ralf_theme")
+}
+
+fn parse_theme(s: &str) -> ThemeName {
+    match s.trim().to_lowercase().as_str() {
+        "trans" => ThemeName::Trans,
+        "lesbian" => ThemeName::Lesbian,
+        "bisexual" | "bi" => ThemeName::Bisexual,
+        "non-binary" | "nonbinary" | "enby" => ThemeName::NonBinary,
+        "intersex" => ThemeName::Intersex,
+        "progress" => ThemeName::Progress,
+        _ => ThemeName::Trans,
+    }
+}
+
+pub fn current_theme() -> ThemeName {
+    if let Ok(s) = std::env::var("RALF_THEME") { return parse_theme(&s); }
+    if let Ok(s) = fs::read_to_string(theme_file()) { return parse_theme(&s); }
+    ThemeName::Trans
+}
+
+pub fn set_theme_by_name(name: &str) -> Result<()> {
+    fs::write(theme_file(), name.trim().to_lowercase())?;
+    Ok(())
+}
+
+pub fn theme_options() -> &'static [&'static str] {
+    &["Trans", "Lesbian", "Bisexual", "Non-binary", "Intersex", "Progress"]
+}
+
+fn theme_palette(t: ThemeName) -> (Vec<Color>, Color, Color) {
+    match t {
+        ThemeName::Trans => {
+            let stripes = vec![TRANS_BLUE, TRANS_PINK, TRANS_WHITE, TRANS_PINK, TRANS_BLUE];
+            (stripes, TRANS_PINK, TRANS_BLUE)
+        }
+        ThemeName::Lesbian => {
+            let stripes = vec![
+                Color::Rgb(0xD5,0x2D,0x00),
+                Color::Rgb(0xEF,0x76,0x27),
+                Color::Rgb(0xFF,0x9A,0x56),
+                Color::Rgb(0xFF,0xFF,0xFF),
+                Color::Rgb(0xD1,0x62,0xA4),
+                Color::Rgb(0xB5,0x56,0x90),
+                Color::Rgb(0xA3,0x02,0x62),
+            ];
+            (stripes, Color::Rgb(0xA3,0x02,0x62), Color::Rgb(0xD5,0x2D,0x00))
+        }
+        ThemeName::Bisexual => {
+            let stripes = vec![
+                Color::Rgb(0xD6,0x02,0x70),
+                Color::Rgb(0x9B,0x4F,0x96),
+                Color::Rgb(0x00,0x38,0xA8),
+            ];
+            (stripes, Color::Rgb(0xD6,0x02,0x70), Color::Rgb(0x00,0x38,0xA8))
+        }
+        ThemeName::NonBinary => {
+            let stripes = vec![
+                Color::Rgb(0xFF,0xF4,0x30),
+                Color::Rgb(0xFF,0xFF,0xFF),
+                Color::Rgb(0x9C,0x59,0xD1),
+                Color::Rgb(0x2C,0x2C,0x2C),
+            ];
+            (stripes, Color::Rgb(0x9C,0x59,0xD1), Color::Rgb(0x9C,0x59,0xD1))
+        }
+        ThemeName::Intersex => {
+            let stripes = vec![
+                Color::Rgb(0xFF,0xD8,0x00),
+                Color::Rgb(0xFF,0xD8,0x00),
+                Color::Rgb(0xFF,0xD8,0x00),
+                Color::Rgb(0xFF,0xD8,0x00),
+                Color::Rgb(0xFF,0xD8,0x00),
+            ];
+            (stripes, Color::Rgb(0x79,0x02,0xAA), Color::Rgb(0x79,0x02,0xAA))
+        }
+        ThemeName::Progress => {
+            // Simplified horizontal stripes approximation
+            let stripes = vec![
+                Color::Black,
+                Color::Rgb(0x78,0x4F,0x17), // brown
+                Color::Rgb(0x5B,0xCF,0xFA), // trans blue
+                Color::Rgb(0xF5,0xA9,0xB8), // trans pink
+                Color::Rgb(0xFF,0xFF,0xFF), // white
+                Color::Rgb(0xE4,0x03,0x03), // red
+                Color::Rgb(0xFF,0x8C,0x00), // orange
+                Color::Rgb(0xFF,0xED,0x00), // yellow
+                Color::Rgb(0x00,0x80,0x26), // green
+                Color::Rgb(0x00,0x4D,0xFF), // blue
+                Color::Rgb(0x75,0x07,0x87), // violet
+            ];
+            (stripes, Color::Rgb(0x75,0x07,0x87), Color::Rgb(0x00,0x4D,0xFF))
+        }
+    }
+}
 
 pub enum ConnectChoice {
     Ssh,
@@ -59,25 +160,29 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
         terminal.draw(|f| {
             let area = f.area();
             // Background stripes
+            let (stripe_colors, title_fg, border_fg) = theme_palette(current_theme());
+            let n = stripe_colors.len() as u16;
+            let base = 100 / n.max(1);
+            let mut constraints: Vec<Constraint> = vec![Constraint::Percentage(base); n as usize];
+            // add any remainder to the last stripe
+            let used = base * n;
+            if used < 100 {
+                if let Some(last) = constraints.last_mut() {
+                    *last = Constraint::Percentage(base + (100 - used));
+                }
+            }
             let stripes = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                ])
+                .constraints(constraints)
                 .split(area);
-            let stripe_colors = [TRANS_BLUE, TRANS_PINK, TRANS_WHITE, TRANS_PINK, TRANS_BLUE];
             for (chunk, color) in stripes.iter().zip(stripe_colors.iter()) {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
             }
             // Input block
             let block = Block::default()
-                .title(Line::from(prompt).style(Style::default().fg(TRANS_PINK).add_modifier(Modifier::BOLD)))
+                .title(Line::from(prompt).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(TRANS_BLUE));
+                .border_style(Style::default().fg(border_fg));
             let inner = block.inner(area);
             f.render_widget(block, area);
             let text = Paragraph::new(buf.clone())
@@ -85,7 +190,7 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
             f.render_widget(text, inner);
             let hint = Paragraph::new("Type text, Enter to submit, Esc to cancel, Ctrl-U to clear")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(TRANS_PINK).bg(Color::Reset));
+                .style(Style::default().fg(title_fg).bg(Color::Reset));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -133,25 +238,29 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
         terminal.draw(|f| {
             let area = f.area();
             // Background stripes
+            let (stripe_colors, title_fg, border_fg) = theme_palette(current_theme());
+            let n = stripe_colors.len() as u16;
+            let base = 100 / n.max(1);
+            let mut constraints: Vec<Constraint> = vec![Constraint::Percentage(base); n as usize];
+            // add any remainder to the last stripe
+            let used = base * n;
+            if used < 100 {
+                if let Some(last) = constraints.last_mut() {
+                    *last = Constraint::Percentage(base + (100 - used));
+                }
+            }
             let stripes = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                ])
+                .constraints(constraints)
                 .split(area);
-            let stripe_colors = [TRANS_BLUE, TRANS_PINK, TRANS_WHITE, TRANS_PINK, TRANS_BLUE];
             for (chunk, color) in stripes.iter().zip(stripe_colors.iter()) {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
             }
 
             let block = Block::default()
-                .title(Line::from(title).style(Style::default().fg(TRANS_PINK).add_modifier(Modifier::BOLD)))
+                .title(Line::from(title).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(TRANS_BLUE));
+                .border_style(Style::default().fg(border_fg));
             let inner = block.inner(area);
             f.render_widget(block, area);
 
@@ -165,7 +274,7 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
 
             let hint = Paragraph::new("↑/↓ PgUp/PgDn Home/End to scroll, q/Esc/Enter to return")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(TRANS_PINK).bg(Color::Reset));
+                .style(Style::default().fg(title_fg).bg(Color::Reset));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -207,25 +316,29 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
         terminal.draw(|f| {
             let area = f.area();
             // Background stripes
+            let (stripe_colors, title_fg, border_fg) = theme_palette(current_theme());
+            let n = stripe_colors.len() as u16;
+            let base = 100 / n.max(1);
+            let mut constraints: Vec<Constraint> = vec![Constraint::Percentage(base); n as usize];
+            // add any remainder to the last stripe
+            let used = base * n;
+            if used < 100 {
+                if let Some(last) = constraints.last_mut() {
+                    *last = Constraint::Percentage(base + (100 - used));
+                }
+            }
             let stripes = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                ])
+                .constraints(constraints)
                 .split(area);
-            let stripe_colors = [TRANS_BLUE, TRANS_PINK, TRANS_WHITE, TRANS_PINK, TRANS_BLUE];
             for (chunk, color) in stripes.iter().zip(stripe_colors.iter()) {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
             }
 
             let block = Block::default()
-                .title(Line::from(title).style(Style::default().fg(TRANS_PINK).add_modifier(Modifier::BOLD)))
+                .title(Line::from(title).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(TRANS_BLUE));
+                .border_style(Style::default().fg(border_fg));
             f.render_widget(block.clone(), area);
 
             let inner = block.inner(area);
@@ -234,7 +347,7 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
 
             let hint = Paragraph::new("Press any key to return")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(TRANS_PINK).bg(Color::Reset));
+                .style(Style::default().fg(title_fg).bg(Color::Reset));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -273,26 +386,29 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
         terminal.draw(|f| {
             let area = f.area();
 
+            let (stripe_colors, title_fg, border_fg) = theme_palette(current_theme());
+            let n = stripe_colors.len() as u16;
+            let base = 100 / n.max(1);
+            let mut constraints: Vec<Constraint> = vec![Constraint::Percentage(base); n as usize];
+            // add any remainder to the last stripe
+            let used = base * n;
+            if used < 100 {
+                if let Some(last) = constraints.last_mut() {
+                    *last = Constraint::Percentage(base + (100 - used));
+                }
+            }
             let stripes = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                    Constraint::Percentage(20),
-                ])
+                .constraints(constraints)
                 .split(area);
-            // Blue, Pink, White, Pink, Blue
-            let stripe_colors = [TRANS_BLUE, TRANS_PINK, TRANS_WHITE, TRANS_PINK, TRANS_BLUE];
             for (chunk, color) in stripes.iter().zip(stripe_colors.iter()) {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
             }
 
             let block = Block::default()
-                .title(Line::from(title).style(Style::default().fg(TRANS_PINK).add_modifier(Modifier::BOLD)))
+                .title(Line::from(title).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
                 .borders(Borders::ALL)
-                .border_style(Style::default().fg(TRANS_BLUE));
+                .border_style(Style::default().fg(border_fg));
 
             let items_widgets: Vec<ListItem> = items
                 .iter()
@@ -301,7 +417,7 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
                     let style = if i == idx {
                         Style::default()
                             .fg(Color::Black)
-                            .bg(TRANS_WHITE)
+                            .bg(Color::White)
                             .add_modifier(Modifier::BOLD)
                     } else {
                         Style::default().fg(Color::Black)
@@ -315,7 +431,7 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
 
             let hint = Paragraph::new("Use ↑/↓ to move, Enter to select, Esc to abort")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(TRANS_PINK).bg(Color::Reset));
+                .style(Style::default().fg(title_fg).bg(Color::Reset));
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
