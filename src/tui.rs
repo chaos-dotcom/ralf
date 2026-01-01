@@ -188,16 +188,20 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
             f.render_widget(block, area);
             // After: f.render_widget(block, area);
             if matches!(current_theme(), ThemeName::Intersex) {
-                // Draw a hollow purple ring centered within the inner area
+                // Solid purple O (thick ring) centered within the inner area
                 let cx = inner.width as f64 / 2.0;
                 let cy = inner.height as f64 / 2.0;
-                let r = (inner.width.min(inner.height) as f64 * 0.25).max(4.0);
-                // Build a slightly thick ring (two concentric radii)
-                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * 2);
-                for d in 0..360 {
-                    let a = (d as f64).to_radians();
-                    pts.push((cx + r * a.cos(), cy + r * a.sin()));
-                    pts.push((cx + (r - 1.0) * a.cos(), cy + (r - 1.0) * a.sin()));
+                let min_dim = inner.width.min(inner.height) as f64;
+                let r_outer = (min_dim * 0.35).max(6.0);
+                let thickness = (min_dim * 0.12).max(3.0);
+                let steps = thickness as i32;
+                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * steps.max(1) as usize);
+                for dr in 0..steps {
+                    let r = r_outer - dr as f64;
+                    for d in 0..360 {
+                        let a = (d as f64).to_radians();
+                        pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                    }
                 }
                 let canvas = Canvas::default()
                     .x_bounds([0.0, inner.width as f64])
@@ -282,28 +286,6 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
             }
 
-            if matches!(current_theme(), ThemeName::Intersex) {
-                // Draw ring behind list (centered in full area for readability)
-                let cx = area.width as f64 / 2.0;
-                let cy = area.height as f64 / 2.0;
-                let r = (area.width.min(area.height) as f64 * 0.25).max(4.0);
-                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * 2);
-                for d in 0..360 {
-                    let a = (d as f64).to_radians();
-                    pts.push((cx + r * a.cos(), cy + r * a.sin()));
-                    pts.push((cx + (r - 1.0) * a.cos(), cy + (r - 1.0) * a.sin()));
-                }
-                let canvas = Canvas::default()
-                    .x_bounds([0.0, area.width as f64])
-                    .y_bounds([0.0, area.height as f64])
-                    .paint(|ctx| {
-                        ctx.draw(&Points {
-                            coords: &pts,
-                            color: Color::Rgb(0x79, 0x02, 0xAA),
-                        });
-                    });
-                f.render_widget(canvas, area);
-            }
 
             let block = Block::default()
                 .title(Line::from(title).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
@@ -315,12 +297,17 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
             if matches!(current_theme(), ThemeName::Intersex) {
                 let cx = inner.width as f64 / 2.0;
                 let cy = inner.height as f64 / 2.0;
-                let r = (inner.width.min(inner.height) as f64 * 0.25).max(4.0);
-                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * 2);
-                for d in 0..360 {
-                    let a = (d as f64).to_radians();
-                    pts.push((cx + r * a.cos(), cy + r * a.sin()));
-                    pts.push((cx + (r - 1.0) * a.cos(), cy + (r - 1.0) * a.sin()));
+                let min_dim = inner.width.min(inner.height) as f64;
+                let r_outer = (min_dim * 0.35).max(6.0);
+                let thickness = (min_dim * 0.12).max(3.0);
+                let steps = thickness as i32;
+                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * steps.max(1) as usize);
+                for dr in 0..steps {
+                    let r = r_outer - dr as f64;
+                    for d in 0..360 {
+                        let a = (d as f64).to_radians();
+                        pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                    }
                 }
                 let canvas = Canvas::default()
                     .x_bounds([0.0, inner.width as f64])
@@ -405,6 +392,33 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
             }
 
+            if matches!(current_theme(), ThemeName::Intersex) {
+                let cx = area.width as f64 / 2.0;
+                let cy = area.height as f64 / 2.0;
+                let min_dim = area.width.min(area.height) as f64;
+                let r_outer = (min_dim * 0.35).max(6.0);
+                let thickness = (min_dim * 0.12).max(3.0);
+                let steps = thickness as i32;
+                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * steps.max(1) as usize);
+                for dr in 0..steps {
+                    let r = r_outer - dr as f64;
+                    for d in 0..360 {
+                        let a = (d as f64).to_radians();
+                        pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                    }
+                }
+                let canvas = Canvas::default()
+                    .x_bounds([0.0, area.width as f64])
+                    .y_bounds([0.0, area.height as f64])
+                    .paint(|ctx| {
+                        ctx.draw(&Points {
+                            coords: &pts,
+                            color: Color::Rgb(0x79, 0x02, 0xAA),
+                        });
+                    });
+                f.render_widget(canvas, area);
+            }
+
             let block = Block::default()
                 .title(Line::from(title).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
                 .borders(Borders::ALL)
@@ -415,12 +429,17 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
                 let inner = block.inner(area);
                 let cx = inner.width as f64 / 2.0;
                 let cy = inner.height as f64 / 2.0;
-                let r = (inner.width.min(inner.height) as f64 * 0.25).max(4.0);
-                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * 2);
-                for d in 0..360 {
-                    let a = (d as f64).to_radians();
-                    pts.push((cx + r * a.cos(), cy + r * a.sin()));
-                    pts.push((cx + (r - 1.0) * a.cos(), cy + (r - 1.0) * a.sin()));
+                let min_dim = inner.width.min(inner.height) as f64;
+                let r_outer = (min_dim * 0.35).max(6.0);
+                let thickness = (min_dim * 0.12).max(3.0);
+                let steps = thickness as i32;
+                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * steps.max(1) as usize);
+                for dr in 0..steps {
+                    let r = r_outer - dr as f64;
+                    for d in 0..360 {
+                        let a = (d as f64).to_radians();
+                        pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                    }
                 }
                 let canvas = Canvas::default()
                     .x_bounds([0.0, inner.width as f64])
