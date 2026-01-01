@@ -10,6 +10,7 @@ pub fn generate_completions(config_file: &Path) -> Result<String> {
 
     let mut out = String::new();
     out.push_str("# Completions\n");
+    out.push_str("if [ -n \"$ZSH_VERSION\" ]; then\n  autoload -U +X compinit && compinit\n  autoload -U +X bashcompinit && bashcompinit\nfi\n");
     out.push_str("if command -v complete &> /dev/null ; then\n");
 
     let mut current_ali1: Option<String> = None;

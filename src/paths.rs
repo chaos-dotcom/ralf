@@ -21,7 +21,16 @@ pub fn env_aliases_file() -> PathBuf {
     if let Ok(s) = std::env::var("ralf_ALIASES_FILE") {
         PathBuf::from(shellexpand::tilde(&s).into_owned())
     } else {
-        home_dir().unwrap().join(".bash_aliases")
+        let is_zsh = std::env::var("ZSH_VERSION").is_ok()
+            || std::env::var("SHELL")
+                .ok()
+                .map(|s| s.ends_with("zsh") || s.contains("/zsh"))
+                .unwrap_or(false);
+        if is_zsh {
+            home_dir().unwrap().join(".zsh_aliases")
+        } else {
+            home_dir().unwrap().join(".bash_aliases")
+        }
     }
 }
 
