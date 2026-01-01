@@ -25,13 +25,16 @@ pub enum Commands {
     Save,
 
     #[command(alias = "e")]
-    Edit,
+    Edit { what: Option<String> },
 
     #[command(alias = "w")]
     Which {
         code: String,
         subcode: Option<String>,
     },
+
+    #[command(alias = "m")]
+    Machine { name: Option<String> },
 
     Upgrade,
     Info,

@@ -12,7 +12,7 @@ enum State {
 
 pub fn generate_config() -> Result<String> {
     let p = paths::find_config_or_exit()?;
-    let text = fs::read_to_string(&p.config_file)?;
+    let text = crate::config_merge::load_and_merge(&p)?;
     let re = Regex::new(r"^( *)([A-Za-z0-9\-]+): *(.+)$")?;
 
     let mut out = String::new();
@@ -85,10 +85,10 @@ pub fn generate_config() -> Result<String> {
     // Flush trailing
     generate_last_cmd(&mut out, lastcmd.take(), &mut state, &mut case_open);
 
-    // Blank line then completions if any
+    // Blank line then completions (from merged text) if any
     out.push('\n');
-    if has_subcommands(&p.config_file)? {
-        out.push_str(&completions::generate_completions(&p.config_file)?);
+    if has_subcommands_text(&text) {
+        out.push_str(&completions::generate_completions_from_text(&text)?);
     }
 
     Ok(out)
@@ -128,4 +128,9 @@ pub fn has_subcommands(config_file: &Path) -> Result<bool> {
     let re = Regex::new(r"^ +([a-z0-9\-]+):")?;
     let text = fs::read_to_string(config_file)?;
     Ok(text.lines().any(|l| re.is_match(l)))
+}
+
+fn has_subcommands_text(text: &str) -> bool {
+    let re = regex::Regex::new(r"^ +([a-z0-9\-]+):").unwrap();
+    text.lines().any(|l| re.is_match(l))
 }

@@ -4,7 +4,7 @@ use std::fs;
 
 pub fn run(code: String, subcode: Option<String>) -> Result<()> {
     let p = crate::paths::find_config_or_exit()?;
-    let text = fs::read_to_string(&p.config_file)?;
+    let text = crate::config_merge::load_and_merge(&p)?;
 
     let re_top = Regex::new(&format!(r"^({}): *(.+)$", regex::escape(&code)))?;
     let re_sub = subcode

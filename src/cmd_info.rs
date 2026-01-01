@@ -45,6 +45,10 @@ pub fn run() -> Result<()> {
         "  ralf_ALIASES_FILE:  {}",
         std::env::var("ralf_ALIASES_FILE").unwrap_or_else(|_| "unset".into())
     );
+    println!(
+        "  ralf_MACHINE:      {}",
+        std::env::var("ralf_MACHINE").unwrap_or_else(|_| "unset".into())
+    );
     println!();
 
     println!("Paths:");
@@ -58,6 +62,21 @@ pub fn run() -> Result<()> {
     println!("  ralfrc:             {}", ralfrc_content);
     println!("  aliases:           {}", aliases_status);
     println!();
+
+    let mid = crate::config_merge::resolve_machine_id(&p);
+    let (mp, lp) = crate::config_merge::overlay_paths(&p, &mid);
+    println!("Machine:");
+    println!("  id:               {}", mid);
+    println!(
+        "  machine overlay:  {} ({})",
+        mp.display(),
+        if mp.exists() { "exists" } else { "missing" }
+    );
+    println!(
+        "  local overlay:    {} ({})",
+        lp.display(),
+        if lp.exists() { "exists" } else { "missing" }
+    );
 
     println!("GitHub:");
     println!("  remote:            {}", remote);
