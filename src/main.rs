@@ -19,20 +19,22 @@ mod cmd_which;
 mod cmd_upgrade;
 mod cmd_info;
 mod cmd_machine;
+mod cmd_menu;
 
 fn main() -> Result<()> {
     let cli = cli::Cli::parse();
     match cli.command {
-        cli::Commands::Connect(args) => cmd_connect::run(args)?,
-        cli::Commands::Download => cmd_download::run()?,
-        cli::Commands::Upload => cmd_upload::run()?,
-        cli::Commands::Generate => cmd_generate::run()?,
-        cli::Commands::Save => cmd_save::run()?,
-        cli::Commands::Edit { what } => cmd_edit::run(what)?,
-        cli::Commands::Which { code, subcode } => cmd_which::run(code, subcode)?,
-        cli::Commands::Upgrade => cmd_upgrade::run()?,
-        cli::Commands::Machine { name } => cmd_machine::run(name)?,
-        cli::Commands::Info => cmd_info::run()?,
+        Some(cli::Commands::Connect(args)) => cmd_connect::run(args)?,
+        Some(cli::Commands::Download) => cmd_download::run()?,
+        Some(cli::Commands::Upload) => cmd_upload::run()?,
+        Some(cli::Commands::Generate) => cmd_generate::run()?,
+        Some(cli::Commands::Save) => cmd_save::run()?,
+        Some(cli::Commands::Edit { what }) => cmd_edit::run(what)?,
+        Some(cli::Commands::Which { code, subcode }) => cmd_which::run(code, subcode)?,
+        Some(cli::Commands::Upgrade) => cmd_upgrade::run()?,
+        Some(cli::Commands::Machine { name }) => cmd_machine::run(name)?,
+        Some(cli::Commands::Info) => cmd_info::run()?,
+        None => cmd_menu::run()?,
     }
     Ok(())
 }

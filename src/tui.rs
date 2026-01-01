@@ -42,6 +42,81 @@ pub fn confirm(prompt: &str) -> Result<bool> {
     }
 }
 
+pub fn select(title: &str, items: &[&str]) -> Result<Option<usize>> {
+    list_select(title, items)
+}
+
+pub fn input(prompt: &str) -> Result<Option<String>> {
+    use crossterm::event::KeyModifiers;
+    enable_raw_mode()?;
+    let mut out = stdout();
+    execute!(out, EnterAlternateScreen)?;
+    let backend = CrosstermBackend::new(out);
+    let mut terminal = Terminal::new(backend)?;
+    terminal.clear()?;
+    let mut buf = String::new();
+    let res = loop {
+        terminal.draw(|f| {
+            let area = f.area();
+            // Background stripes
+            let stripes = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                    Constraint::Percentage(20),
+                ])
+                .split(area);
+            let stripe_colors = [TRANS_BLUE, TRANS_PINK, TRANS_WHITE, TRANS_PINK, TRANS_BLUE];
+            for (chunk, color) in stripes.iter().zip(stripe_colors.iter()) {
+                f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
+            }
+            // Input block
+            let block = Block::default()
+                .title(Line::from(prompt).style(Style::default().fg(TRANS_PINK).add_modifier(Modifier::BOLD)))
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(TRANS_BLUE));
+            let inner = block.inner(area);
+            f.render_widget(block, area);
+            let text = Paragraph::new(buf.clone())
+                .style(Style::default().fg(Color::Black));
+            f.render_widget(text, inner);
+            let hint = Paragraph::new("Type text, Enter to submit, Esc to cancel, Ctrl-U to clear")
+                .alignment(Alignment::Center)
+                .style(Style::default().fg(TRANS_PINK).bg(Color::Reset));
+            let hint_area = ratatui::layout::Rect {
+                x: area.x,
+                y: area.y.saturating_add(area.height.saturating_sub(2)),
+                width: area.width,
+                height: 1,
+            };
+            f.render_widget(hint, hint_area);
+        })?;
+        if event::poll(std::time::Duration::from_millis(250))? {
+            if let Event::Key(k) = event::read()? {
+                match k.code {
+                    KeyCode::Esc => break None,
+                    KeyCode::Enter => break Some(buf.clone()),
+                    KeyCode::Backspace => { buf.pop(); }
+                    KeyCode::Char(c) => {
+                        if k.modifiers.contains(KeyModifiers::CONTROL) {
+                            // simple Ctrl-U clear
+                            if c == 'u' || c == 'U' { buf.clear(); }
+                        } else {
+                            buf.push(c);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+    };
+    cleanup(terminal)?;
+    Ok(res)
+}
+
 fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
     enable_raw_mode()?;
     let mut out = stdout();

@@ -4,7 +4,7 @@ use clap::{Args, Parser, Subcommand};
 #[command(name = "ralf", version, about = "Your Little Rusty Bash & zsh Alias Friend")]
 pub struct Cli {
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: Option<Commands>,
 }
 
 #[derive(Subcommand, Debug)]
