@@ -1,0 +1,3 @@
+Saving to aliases.txt
+To apply the new aliases to the current session, run:
+$ source aliases.txt
