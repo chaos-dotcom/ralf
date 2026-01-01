@@ -49,4 +49,6 @@ pub struct ConnectArgs {
     pub https: bool,
     #[arg(short = 'y', long = "yes")]
     pub yes: bool,
+    #[arg(long)]
+    pub tui: bool,
 }

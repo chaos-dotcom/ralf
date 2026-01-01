@@ -22,6 +22,9 @@ pub fn run(args: ConnectArgs) -> Result<()> {
         alt_repo_url = Some(format!("{}/alf-conf.git", input));
     }
 
+    let force_tui = args.tui
+        || matches!(std::env::var("RALF_TUI_FORCE").ok().as_deref(), Some("1") | Some("true") | Some("yes") | Some("on"));
+
     // Destination and rc paths
     let cwd = std::env::current_dir()?;
     let dir_ralf = cwd.join("ralf-conf");
@@ -42,7 +45,7 @@ pub fn run(args: ConnectArgs) -> Result<()> {
 
     // Non-interactive flags
     let mut accepted: bool;
-    if args.ssh {
+    if !force_tui && args.ssh {
         if partial_github {
             repo_url = format!("git@github.com:{}", repo_url);
         }
@@ -51,7 +54,7 @@ pub fn run(args: ConnectArgs) -> Result<()> {
         }
         println!("Connecting to {}", repo_url);
         accepted = true;
-    } else if args.https {
+    } else if !force_tui && args.https {
         if partial_github {
             repo_url = format!("https://github.com/{}", repo_url);
         }
@@ -60,7 +63,7 @@ pub fn run(args: ConnectArgs) -> Result<()> {
         }
         println!("Connecting to {}", repo_url);
         accepted = true;
-    } else if args.yes {
+    } else if !force_tui && args.yes {
         if partial_github {
             println!("Error: Cannot determine the full URL for the repository");
             println!("To connect to GitHub use --ssh or --https");
