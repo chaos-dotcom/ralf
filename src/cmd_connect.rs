@@ -17,12 +17,12 @@ pub fn run(args: ConnectArgs) -> Result<()> {
         repo_url = format!("{}.git", input);
     } else {
         partial_github = true;
-        repo_url = format!("{}/alf-conf.git", input);
+        repo_url = format!("{}/ralf-conf.git", input);
     }
 
     // Destination and rc paths
     let cwd = std::env::current_dir()?;
-    let dest = cwd.join("alf-conf");
+    let dest = cwd.join("ralf-conf");
     let rc_file = paths::env_rc_file();
 
     // Non-interactive flags
@@ -54,10 +54,10 @@ pub fn run(args: ConnectArgs) -> Result<()> {
         println!();
         if !dest.exists() {
             println!("  clone  {}", repo_url);
-            println!("     to  ./alf-conf");
+            println!("     to  ./ralf-conf");
             println!();
         }
-        println!("  write  {}/alf-conf", cwd.display());
+        println!("  write  {}/ralf-conf", cwd.display());
         println!("     to  {}", rc_file.display());
         println!();
 
@@ -101,11 +101,11 @@ pub fn run(args: ConnectArgs) -> Result<()> {
         gitwrap::clone(&repo_url, &dest)?;
     }
 
-    // Write "$PWD/alf-conf" to rc file (overwrite)
+    // Write "$PWD/ralf-conf" to rc file (overwrite)
     if let Some(parent) = rc_file.parent() {
         std::fs::create_dir_all(parent)?;
     }
-    let contents = format!("{}/alf-conf", cwd.display());
+    let contents = format!("{}/ralf-conf", cwd.display());
     std::fs::write(&rc_file, contents)?;
     println!("Storing location in {}", rc_file.display());
 

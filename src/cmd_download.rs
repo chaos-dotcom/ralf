@@ -5,7 +5,7 @@ pub fn run() -> Result<()> {
     let rc = paths::env_rc_file();
     if !rc.exists() {
         println!("Cannot find {}", rc.display());
-        println!("Please connect alf to a repository first");
+        println!("Please connect ralf to a repository first");
         std::process::exit(1);
     }
 

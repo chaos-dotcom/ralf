@@ -18,16 +18,16 @@ pub fn run() -> Result<()> {
         "unset".into()
     };
 
-    // alfrc content / aliases status
-    let alfrc_content = if p.rc_file.exists() {
+    // ralfrc content / aliases status
+    let ralfrc_content = if p.rc_file.exists() {
         format!("exists with '{}'", fs::read_to_string(&p.rc_file)?.trim())
     } else {
         "does not exist".into()
     };
     let aliases_status = if p.aliases_file.exists() { "exists" } else { "does not exist" };
 
-    // Executable path (command -v alf)
-    let exe = which("alf")
+    // Executable path (command -v ralf)
+    let exe = which("ralf")
         .map(|p| p.to_string_lossy().to_string())
         .unwrap_or_else(|_| std::env::current_exe().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|_| "unknown".into()));
 
@@ -38,24 +38,24 @@ pub fn run() -> Result<()> {
 
     println!("Environment:");
     println!(
-        "  ALF_RC_FILE:       {}",
-        std::env::var("ALF_RC_FILE").unwrap_or_else(|_| "unset".into())
+        "  ralf_RC_FILE:       {}",
+        std::env::var("ralf_RC_FILE").unwrap_or_else(|_| "unset".into())
     );
     println!(
-        "  ALF_ALIASES_FILE:  {}",
-        std::env::var("ALF_ALIASES_FILE").unwrap_or_else(|_| "unset".into())
+        "  ralf_ALIASES_FILE:  {}",
+        std::env::var("ralf_ALIASES_FILE").unwrap_or_else(|_| "unset".into())
     );
     println!();
 
     println!("Paths:");
-    println!("  alfrc path:        {}", p.rc_file.display());
+    println!("  ralfrc path:        {}", p.rc_file.display());
     println!("  aliases path:      {}", p.aliases_file.display());
     println!("  repo path:         {}", p.repo_path.display());
     println!("  config path:       {}", p.config_file.display());
     println!();
 
     println!("Files:");
-    println!("  alfrc:             {}", alfrc_content);
+    println!("  ralfrc:             {}", ralfrc_content);
     println!("  aliases:           {}", aliases_status);
     println!();
 
