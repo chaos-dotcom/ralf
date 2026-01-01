@@ -188,26 +188,27 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
             f.render_widget(block, area);
             // After: f.render_widget(block, area);
             if matches!(current_theme(), ThemeName::Intersex) {
-                // Circle center in absolute area coordinates
-                let cx = (inner.x + inner.width / 2) as f64;
-                let cy = (inner.y + inner.height / 2) as f64;
+                // Draw a hollow purple ring centered within the inner area
+                let cx = inner.width as f64 / 2.0;
+                let cy = inner.height as f64 / 2.0;
                 let r = (inner.width.min(inner.height) as f64 * 0.25).max(4.0);
-                let points: Vec<(f64, f64)> = (0..360)
-                    .map(|d| {
-                        let a = (d as f64).to_radians();
-                        (cx + r * a.cos(), cy + r * a.sin())
-                    })
-                    .collect();
+                // Build a slightly thick ring (two concentric radii)
+                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * 2);
+                for d in 0..360 {
+                    let a = (d as f64).to_radians();
+                    pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                    pts.push((cx + (r - 1.0) * a.cos(), cy + (r - 1.0) * a.sin()));
+                }
                 let canvas = Canvas::default()
-                    .x_bounds([0.0, area.width as f64])
-                    .y_bounds([0.0, area.height as f64])
+                    .x_bounds([0.0, inner.width as f64])
+                    .y_bounds([0.0, inner.height as f64])
                     .paint(|ctx| {
                         ctx.draw(&Points {
-                            coords: &points,
-                            color: Color::Rgb(0x79, 0x02, 0xAA), // intersex purple ring
+                            coords: &pts,
+                            color: Color::Rgb(0x79, 0x02, 0xAA), // intersex purple
                         });
                     });
-                f.render_widget(canvas, area);
+                f.render_widget(canvas, inner);
             }
             let text = Paragraph::new(buf.clone())
                 .style(Style::default().fg(Color::Black));
@@ -281,6 +282,29 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
             }
 
+            if matches!(current_theme(), ThemeName::Intersex) {
+                // Draw ring behind list (centered in full area for readability)
+                let cx = area.width as f64 / 2.0;
+                let cy = area.height as f64 / 2.0;
+                let r = (area.width.min(area.height) as f64 * 0.25).max(4.0);
+                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * 2);
+                for d in 0..360 {
+                    let a = (d as f64).to_radians();
+                    pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                    pts.push((cx + (r - 1.0) * a.cos(), cy + (r - 1.0) * a.sin()));
+                }
+                let canvas = Canvas::default()
+                    .x_bounds([0.0, area.width as f64])
+                    .y_bounds([0.0, area.height as f64])
+                    .paint(|ctx| {
+                        ctx.draw(&Points {
+                            coords: &pts,
+                            color: Color::Rgb(0x79, 0x02, 0xAA),
+                        });
+                    });
+                f.render_widget(canvas, area);
+            }
+
             let block = Block::default()
                 .title(Line::from(title).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
                 .borders(Borders::ALL)
@@ -289,25 +313,25 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
             f.render_widget(block, area);
             // After: f.render_widget(block, area);
             if matches!(current_theme(), ThemeName::Intersex) {
-                let cx = (inner.x + inner.width / 2) as f64;
-                let cy = (inner.y + inner.height / 2) as f64;
+                let cx = inner.width as f64 / 2.0;
+                let cy = inner.height as f64 / 2.0;
                 let r = (inner.width.min(inner.height) as f64 * 0.25).max(4.0);
-                let points: Vec<(f64, f64)> = (0..360)
-                    .map(|d| {
-                        let a = (d as f64).to_radians();
-                        (cx + r * a.cos(), cy + r * a.sin())
-                    })
-                    .collect();
+                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * 2);
+                for d in 0..360 {
+                    let a = (d as f64).to_radians();
+                    pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                    pts.push((cx + (r - 1.0) * a.cos(), cy + (r - 1.0) * a.sin()));
+                }
                 let canvas = Canvas::default()
-                    .x_bounds([0.0, area.width as f64])
-                    .y_bounds([0.0, area.height as f64])
+                    .x_bounds([0.0, inner.width as f64])
+                    .y_bounds([0.0, inner.height as f64])
                     .paint(|ctx| {
                         ctx.draw(&Points {
-                            coords: &points,
+                            coords: &pts,
                             color: Color::Rgb(0x79, 0x02, 0xAA),
                         });
                     });
-                f.render_widget(canvas, area);
+                f.render_widget(canvas, inner);
             }
 
             let height = inner.height as usize;
@@ -389,25 +413,25 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
             // After: f.render_widget(block.clone(), area);
             if matches!(current_theme(), ThemeName::Intersex) {
                 let inner = block.inner(area);
-                let cx = (inner.x + inner.width / 2) as f64;
-                let cy = (inner.y + inner.height / 2) as f64;
+                let cx = inner.width as f64 / 2.0;
+                let cy = inner.height as f64 / 2.0;
                 let r = (inner.width.min(inner.height) as f64 * 0.25).max(4.0);
-                let points: Vec<(f64, f64)> = (0..360)
-                    .map(|d| {
-                        let a = (d as f64).to_radians();
-                        (cx + r * a.cos(), cy + r * a.sin())
-                    })
-                    .collect();
+                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(360 * 2);
+                for d in 0..360 {
+                    let a = (d as f64).to_radians();
+                    pts.push((cx + r * a.cos(), cy + r * a.sin()));
+                    pts.push((cx + (r - 1.0) * a.cos(), cy + (r - 1.0) * a.sin()));
+                }
                 let canvas = Canvas::default()
-                    .x_bounds([0.0, area.width as f64])
-                    .y_bounds([0.0, area.height as f64])
+                    .x_bounds([0.0, inner.width as f64])
+                    .y_bounds([0.0, inner.height as f64])
                     .paint(|ctx| {
                         ctx.draw(&Points {
-                            coords: &points,
+                            coords: &pts,
                             color: Color::Rgb(0x79, 0x02, 0xAA),
                         });
                     });
-                f.render_widget(canvas, area);
+                f.render_widget(canvas, inner);
             }
 
             let inner = block.inner(area);
