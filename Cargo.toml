@@ -2,17 +2,17 @@
 name = "ralf"
 version = "0.6.1"
 edition = "2021"
-description = "Your Little Bash Alias Friend"
+description = "Your Little Rusty Bash & zsh Alias Friend"
 
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 regex = "1"
-ratatui = "0.26"
-crossterm = "0.27"
-dirs = "5"
+ratatui = "0.30.0"
+crossterm = "0.29.0"
+dirs = "6.0.0"
 shellexpand = "3"
-which = "8"
+which = "8.0.0"
 
 [dev-dependencies]
 assert_cmd = "2.0"
