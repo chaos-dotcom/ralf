@@ -12,4 +12,9 @@ ratatui = "0.26"
 crossterm = "0.27"
 dirs = "5"
 shellexpand = "3"
-which = "5"
+which = "8"
+
+[dev-dependencies]
+assert_cmd = "2.0"
+assert_fs = "1.0"
+predicates = "3.0"
