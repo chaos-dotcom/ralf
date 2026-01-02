@@ -10,7 +10,10 @@ pub struct Paths {
 }
 
 pub fn env_rc_file() -> PathBuf {
-    if let Ok(s) = std::env::var("ralf_RC_FILE").or_else(|_| std::env::var("ALF_RC_FILE")) {
+    if let Ok(s) = std::env::var("RALF_RC_FILE")
+        .or_else(|_| std::env::var("ralf_RC_FILE"))
+        .or_else(|_| std::env::var("ALF_RC_FILE"))
+    {
         PathBuf::from(shellexpand::tilde(&s).into_owned())
     } else {
         let home = home_dir().unwrap();
@@ -27,7 +30,10 @@ pub fn env_rc_file() -> PathBuf {
 }
 
 pub fn env_aliases_file() -> PathBuf {
-    if let Ok(s) = std::env::var("ralf_ALIASES_FILE").or_else(|_| std::env::var("ALF_ALIASES_FILE")) {
+    if let Ok(s) = std::env::var("RALF_ALIASES_FILE")
+        .or_else(|_| std::env::var("ralf_ALIASES_FILE"))
+        .or_else(|_| std::env::var("ALF_ALIASES_FILE"))
+    {
         PathBuf::from(shellexpand::tilde(&s).into_owned())
     } else {
         let is_zsh = std::env::var("ZSH_VERSION").is_ok()
@@ -47,7 +53,9 @@ pub fn find_config_or_exit() -> anyhow::Result<Paths> {
     let rc_file = env_rc_file();
     let aliases_file = env_aliases_file();
     let cwd = std::env::current_dir()?;
-    let rc_env_set = std::env::var("ralf_RC_FILE").is_ok() || std::env::var("ALF_RC_FILE").is_ok();
+    let rc_env_set = std::env::var("RALF_RC_FILE").is_ok()
+        || std::env::var("ralf_RC_FILE").is_ok()
+        || std::env::var("ALF_RC_FILE").is_ok();
 
     // Bash parity:
     // repo_path defaults to "$PWD/ralf-conf"

@@ -14,15 +14,10 @@ struct Block {
 }
 
 pub fn resolve_machine_id(p: &paths::Paths) -> String {
-    if let Ok(s) = std::env::var("ralf_MACHINE") {
-        let t = s.trim().to_string();
-        if !t.is_empty() {
-            return t;
-        }
-    }
+    // 1) Repo marker wins
     let marker = p.repo_path.join(".ralf_machine");
     if marker.exists() {
-        if let Ok(s) = fs::read_to_string(&marker) {
+        if let Ok(s) = std::fs::read_to_string(&marker) {
             let t = s.trim().to_string();
             if !t.is_empty() {
                 return t;
@@ -32,14 +27,28 @@ pub fn resolve_machine_id(p: &paths::Paths) -> String {
     // Legacy marker migration: .alf_machine -> .ralf_machine
     let legacy = p.repo_path.join(".alf_machine");
     if legacy.exists() {
-        if let Ok(s) = fs::read_to_string(&legacy) {
+        if let Ok(s) = std::fs::read_to_string(&legacy) {
             let t = s.trim().to_string();
             if !t.is_empty() {
-                let _ = fs::rename(&legacy, p.repo_path.join(".ralf_machine"));
+                let _ = std::fs::rename(&legacy, p.repo_path.join(".ralf_machine"));
                 return t;
             }
         }
     }
+
+    // 2) Environment variables (new + legacy, common casings)
+    if let Ok(s) = std::env::var("RALF_MACHINE")
+        .or_else(|_| std::env::var("ALF_MACHINE"))
+        .or_else(|_| std::env::var("ralf_MACHINE"))
+        .or_else(|_| std::env::var("alf_MACHINE"))
+    {
+        let t = s.trim().to_string();
+        if !t.is_empty() {
+            return t;
+        }
+    }
+
+    // 3) Host fallback
     if let Ok(h) = std::env::var("HOSTNAME") {
         let t = h.trim().to_string();
         if !t.is_empty() {
