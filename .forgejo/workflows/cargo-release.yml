@@ -15,16 +15,13 @@ jobs:
   run-tests:
     runs-on: pop-os
     steps:
-      - name: Sync and update submodules over SSH
-        env:
+      - name: RUSTUP
         run: |
           rustup target add x86_64-unknown-linux-gnu-glibc214
       - name: Checkout repository (via HTTPS API)
         uses: actions/checkout@v4
         with:
           github-server-url: "https://git.fetchbroadcast.tools"
-          submodules: false
-          persist-credentials: false
       - name: Cargo Run --Release
         run: cargo build --release --target x86_64-unknown-linux-gnu-glibc214
       - name: Upload Build
