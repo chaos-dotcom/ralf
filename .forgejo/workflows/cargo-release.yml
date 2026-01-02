@@ -27,8 +27,8 @@ jobs:
         run: |
           git submodule sync --recursive
           git -c protocol.version=2 submodule update --init --force --recursive --jobs 4
-      - name: Cargo Test
-        run: cargo run --release
+      - name: Cargo Run --Release
+        run: cargo Build --release
       - name: Upload Build
         uses: actions/upload-artifact@v3
         with:
