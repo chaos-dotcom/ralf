@@ -31,4 +31,4 @@ jobs:
         with:
           name: build-linux
           path: |
-            target/release/*
+            target/release/ralf
