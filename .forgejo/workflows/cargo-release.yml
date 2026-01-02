@@ -25,7 +25,6 @@ jobs:
         env:
           GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
         run: |
-          sudo apt install musl-tools
           rustup target add x86_64-unknown-linux-gnu-glibc214
           
           git submodule sync --recursive
