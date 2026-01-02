@@ -19,6 +19,8 @@ pub fn run(name: Option<String>) -> Result<()> {
         println!("Machine overlay: {}", mp.display());
         println!("Local overlay:   {}", lp.display());
         println!("Tip: run 'ralf edit machine' to edit the machine overlay.");
+        // Regenerate aliases so env exports (ralf_MACHINE, etc.) reflect the new machine
+        crate::cmd_save::run()?;
     } else {
         let mid = config_merge::resolve_machine_id(&p);
         let (mp, lp) = config_merge::overlay_paths(&p, &mid);

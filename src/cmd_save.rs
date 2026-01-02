@@ -10,7 +10,7 @@ pub fn run() -> Result<()> {
     let al_q = esc(&p.aliases_file.to_string_lossy());
     let machine = crate::config_merge::resolve_machine_id(&p);
     let mid_q = esc(&machine);
-    let env_block = format!(
+    let mut env_block = format!(
         "# ralf environment (auto-set)\n\
         export ralf_RC_FILE=\"${{ralf_RC_FILE:-{rc}}}\"\n\
         export ALF_RC_FILE=\"${{ALF_RC_FILE:-{rc}}}\"\n\
@@ -21,6 +21,10 @@ pub fn run() -> Result<()> {
         al = al_q,
         mid = mid_q
     );
+    env_block.push_str(&format!(
+        "if [ -z \"$RALF_MACHINE\" ] && [ -z \"$ralf_MACHINE\" ] && [ -z \"$ALF_MACHINE\" ] && [ -z \"$alf_MACHINE\" ]; then\n  export RALF_MACHINE=\"{mid}\"; export ralf_MACHINE=\"{mid}\"; export ALF_MACHINE=\"{mid}\"; export alf_MACHINE=\"{mid}\";\nfi\n",
+        mid = mid_q
+    ));
     content = format!("{env}{body}", env = env_block, body = content);
 
     println!("Saving to {}", p.aliases_file.display());
@@ -29,8 +33,9 @@ pub fn run() -> Result<()> {
     }
     fs::write(&p.aliases_file, content)?;
     // Auto-source aliases file in future shells, unless overridden by env
-    let aliases_env_set =
-        std::env::var("ralf_ALIASES_FILE").is_ok() || std::env::var("ALF_ALIASES_FILE").is_ok();
+    let aliases_env_set = std::env::var("RALF_ALIASES_FILE").is_ok()
+        || std::env::var("ralf_ALIASES_FILE").is_ok()
+        || std::env::var("ALF_ALIASES_FILE").is_ok();
     if !aliases_env_set {
         if let Some(home) = dirs::home_dir() {
             let shell = std::env::var("SHELL").unwrap_or_default();
