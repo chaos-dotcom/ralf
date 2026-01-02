@@ -13,14 +13,8 @@ env:
 
 jobs:
   run-tests:
-    runs-on: ubuntu-latest
-    container:
-      image: catthehacker/ubuntu:full-latest
+    runs-on: pop-os
     steps:
-      - name: Set up SSH agent for private submodules
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.OIMATE_DEPLOY_KEY }}
       - name: Checkout repository (via HTTPS API)
         uses: actions/checkout@v4
         with:
