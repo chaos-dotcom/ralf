@@ -17,13 +17,13 @@ jobs:
     steps:
       - name: RUSTUP
         run: |
-          rustup target add x86_64-unknown-linux-gnu-glibc214
+          rustup target add x86_64-unknown-linux-musl
       - name: Checkout repository (via HTTPS API)
         uses: actions/checkout@v4
         with:
           github-server-url: "https://git.fetchbroadcast.tools"
       - name: Cargo Run --Release
-        run: cargo build --release --target x86_64-unknown-linux-gnu-glibc214
+        run: cargo build --release --target x86_64-unknown-linux-musl
       - name: Upload Build
         uses: actions/upload-artifact@v3
         with:
