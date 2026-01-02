@@ -12,6 +12,7 @@ pub fn run() -> Result<()> {
     let p = paths::find_config_or_exit()?;
     println!("Pulling from repository to {}", p.repo_path.display());
     crate::gitwrap::pull(&p.repo_path)?;
+    crate::gitwrap::ensure_ralf_gitignore(&p.repo_path)?;
     crate::cmd_save::run()?;
     Ok(())
 }
