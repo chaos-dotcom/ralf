@@ -168,7 +168,7 @@ pub fn run(args: ConnectArgs) -> Result<()> {
         std::fs::create_dir_all(parent)?;
     }
     let abs = dest.canonicalize().unwrap_or(dest.clone());
-    std::fs::write(&rc_file, abs.to_string_lossy().as_bytes())?;
+    std::fs::write(&rc_file, format!("{}\n", abs.to_string_lossy()))?;
     println!("Storing location in {}", rc_file.display());
 
     // Regenerate aliases

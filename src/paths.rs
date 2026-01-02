@@ -178,7 +178,7 @@ pub fn find_config_or_exit() -> anyhow::Result<Paths> {
         if let Some(parent) = rc_file.parent() {
             fs::create_dir_all(parent)?;
         }
-        fs::write(&rc_file, repo_path.to_string_lossy().as_bytes())?;
+        fs::write(&rc_file, format!("{}\n", repo_path.to_string_lossy()))?;
         // Rebuild Paths locals to continue with the migrated rc path
         let aliases_file = aliases_file;
         return Ok(Paths {
@@ -194,7 +194,7 @@ pub fn find_config_or_exit() -> anyhow::Result<Paths> {
         if let Some(parent) = rc_file.parent() {
             fs::create_dir_all(parent)?;
         }
-        fs::write(&rc_file, repo_path.to_string_lossy().as_bytes())?;
+        fs::write(&rc_file, format!("{}\n", repo_path.to_string_lossy()))?;
     }
 
     if !config_file.exists() {
