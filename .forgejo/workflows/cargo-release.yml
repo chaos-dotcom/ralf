@@ -25,10 +25,6 @@ jobs:
           github-server-url: "https://git.fetchbroadcast.tools"
           submodules: false
           persist-credentials: false
-
-          
-          git submodule sync --recursive
-          git -c protocol.version=2 submodule update --init --force --recursive --jobs 4
       - name: Cargo Run --Release
         run: cargo build --release --target x86_64-unknown-linux-gnu-glibc214
       - name: Upload Build
