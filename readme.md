@@ -24,5 +24,5 @@ as well as all of the functionality in alf, ralf supports
 
 ![](screenshots/progress.png)
 
-you can also run ralf in classic mode for a more alf like experience using ralf [COMMAND]
+you can also run ralf in classic mode for a more alf like experience using `ralf [COMMAND]`
 all new commands support this mode as well. 
