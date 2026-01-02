@@ -13,7 +13,9 @@ env:
 
 jobs:
   run-tests:
-    runs-on: pop-os
+    runs-on: ubuntu-latest
+    container:
+      image: catthehacker/ubuntu:full-latest
     steps:
       - name: RUSTUP
         run: |
