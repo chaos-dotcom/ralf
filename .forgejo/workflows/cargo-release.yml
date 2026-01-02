@@ -12,19 +12,16 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  run-tests:
+  make-linux-binary:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/catthehacker/ubuntu:rust-22.04
     steps:
-      - name: RUSTUP
-        run: |
-          ldd --version
       - name: Checkout repository (via HTTPS API)
         uses: actions/checkout@v4
         with:
           github-server-url: "https://git.fetchbroadcast.tools"
-      - name: Cargo Run --Release
+      - name: cargo buld --release
         run: cargo build --release
       - name: Upload Build
         uses: actions/upload-artifact@v3
