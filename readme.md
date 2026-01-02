@@ -12,14 +12,14 @@ as well as all of the functionality in alf, ralf supports
     
 - Non-Optional Pride Flag Branding
 
-!(screenshots/bisexual.png)
+![](screenshots/bisexual.png)
 
-!(screenshots/intersex.png)
+![](screenshots/intersex.png)
 
-!(screenshots/trans.png)
+![](screenshots/trans.png)
 
-!(screenshots/lesbian.png)
+![](screenshots/lesbian.png)
 
-!(screenshots/non-binary.png)
+![](screenshots/non-binary.png)
 
-!(screenshots/progress.png)
+![](screenshots/progress.png)
