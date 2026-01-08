@@ -95,6 +95,7 @@ fn generate_config_fish_from_text(text: &str) -> Result<String> {
     let needs_bash_shim = |s: &str| {
         s.contains("${") || s.contains("$(") || s.contains('`') || s.contains("[[") || s.contains("]]") || s.contains("&&") || s.contains("||")
     };
+    let has_fish_arg_ref = |s: &str| s.contains("$argv") || s.contains("$rest");
     let sq = |s: &str| s.replace('\'', "'\"'\"'");
     for line in text.lines() {
         if let Some(caps) = re.captures(line) {
@@ -107,9 +108,9 @@ fn generate_config_fish_from_text(text: &str) -> Result<String> {
                     let fullcmd = if last.starts_with('!') {
                         "echo this alias requires a subcommand".to_string()
                     } else if needs_bash_shim(&last) {
-                        let script = if last.contains('$') { last.clone() } else { format!("{last} \"$@\"") };
+                        let script = format!("{last} \"$@\"");
                         format!("bash -lc '{}' -- $argv", sq(&script))
-                    } else if last.contains('$') {
+                    } else if has_fish_arg_ref(&last) {
                         last
                     } else {
                         format!("{last} $argv")
@@ -153,9 +154,9 @@ fn generate_config_fish_from_text(text: &str) -> Result<String> {
                 };
                 let bashy = needs_bash_shim(&combined);
                 if bashy {
-                    let script = if combined.contains('$') { combined.clone() } else { format!("{combined} \"$@\"") };
+                    let script = format!("{combined} \"$@\"");
                     out.push_str(&format!("      bash -lc '{}' -- $rest\n", sq(&script)));
-                } else if combined.contains('$') {
+                } else if has_fish_arg_ref(&combined) {
                     out.push_str(&format!("      {}\n", combined));
                 } else {
                     out.push_str(&format!("      {} $rest\n", combined));
@@ -168,9 +169,9 @@ fn generate_config_fish_from_text(text: &str) -> Result<String> {
         let fullcmd = if last.starts_with('!') {
             "echo this alias requires a subcommand".to_string()
         } else if needs_bash_shim(&last) {
-            let script = if last.contains('$') { last.clone() } else { format!("{last} \"$@\"") };
+            let script = format!("{last} \"$@\"");
             format!("bash -lc '{}' -- $argv", sq(&script))
-        } else if last.contains('$') {
+        } else if has_fish_arg_ref(&last) {
             last
         } else {
             format!("{last} $argv")
