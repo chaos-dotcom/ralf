@@ -36,6 +36,14 @@ pub fn env_aliases_file() -> PathBuf {
     {
         PathBuf::from(shellexpand::tilde(&s).into_owned())
     } else {
+        let is_fish = std::env::var("FISH_VERSION").is_ok()
+            || std::env::var("SHELL")
+                .ok()
+                .map(|s| s.ends_with("fish") || s.contains("/fish"))
+                .unwrap_or(false);
+        if is_fish {
+            return home_dir().unwrap().join(".config").join("fish").join("conf.d").join("ralf.fish");
+        }
         let is_zsh = std::env::var("ZSH_VERSION").is_ok()
             || std::env::var("SHELL")
                 .ok()
