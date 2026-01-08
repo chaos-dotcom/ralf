@@ -37,8 +37,9 @@ fn generate_config_sh_from_text(text: &str) -> Result<String> {
     out.push_str("functions -q __ralf_sudo; and functions -e __ralf_sudo\n");
     out.push_str("function __ralf_sudo\n");
     out.push_str("  # Try non-interactive first\n");
-    out.push_str("  sudo -n $argv ^/dev/null\n");
-    out.push_str("  if test $status -eq 0\n");
+    out.push_str("  sudo -n $argv 2>/dev/null\n");
+    out.push_str("  set -l code $status\n");
+    out.push_str("  if test $code -eq 0\n");
     out.push_str("    return 0\n");
     out.push_str("  end\n");
     out.push_str("  if test -n \"$RALF_SUDO_NO_PROMPT\"\n");
