@@ -1,5 +1,4 @@
 use anyhow::Result;
-use regex::Regex;
 
 pub fn run(code: String, subcode: Option<String>) -> Result<()> {
     let p = crate::paths::find_config_or_exit()?;

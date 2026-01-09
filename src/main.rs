@@ -8,6 +8,7 @@ mod completions;
 mod tui;
 mod gitwrap;
 mod config_merge;
+mod domain;
 
 mod cmd_connect;
 mod cmd_download;
