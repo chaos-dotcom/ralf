@@ -22,6 +22,7 @@ COMMANDS
   edit      Edit base config; 'ralf edit machine' edits machine overlay
   which     Show the command behind an alias (and optional subcommand)
   machine   Show or set current machine id used for overlays
+  clean     Remove init stubs and generated files; '--purge' also deletes repo dir
   info      Show environment, paths, files, and git remote
   upgrade   Placeholder for self-update (not implemented yet)
   help      Show this page; 'ralf help [command]' shows command help

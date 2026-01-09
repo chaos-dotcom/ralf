@@ -53,38 +53,65 @@ pub fn run() -> Result<()> {
 
 fn run_child_capture(args: &[&str]) -> Result<()> {
     let exe = std::env::current_exe()?;
-    // Capture both stdout and stderr
     let out = Command::new(exe)
         .args(args)
+        .env("RALF_TUI", "1")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .output()?;
+
+    let ok = out.status.success();
+    let code = out.status.code().unwrap_or_default();
+
+    let mut title = if ok { "Done" } else { "Error" }.to_string();
+
+    let stdout_s = String::from_utf8_lossy(&out.stdout).trim_end().to_string();
+    let stderr_s = String::from_utf8_lossy(&out.stderr).trim_end().to_string();
+
     let mut body = String::new();
-    body.push_str(&format!("$ ralf {}\n\n", args.join(" ")));
-    if !out.stdout.is_empty() {
-        body.push_str(&String::from_utf8_lossy(&out.stdout));
-        if !body.ends_with('\n') { body.push('\n'); }
+    if ok {
+        if stdout_s.is_empty() {
+            body.push_str("Done.");
+        } else {
+            body.push_str(&stdout_s);
+            if !body.ends_with('\n') { body.push('\n'); }
+        }
+        if !stderr_s.is_empty() {
+            if !body.ends_with('\n') { body.push('\n'); }
+            body.push_str("Warnings:\n");
+            body.push_str(&stderr_s);
+            if !body.ends_with('\n') { body.push('\n'); }
+        }
+    } else {
+        title = format!("Error (code {})", code);
+        if !stderr_s.is_empty() {
+            body.push_str("Error:\n");
+            body.push_str(&stderr_s);
+            if !body.ends_with('\n') { body.push('\n'); }
+        }
+        if !stdout_s.is_empty() {
+            if !body.ends_with('\n') { body.push('\n'); }
+            body.push_str("Output:\n");
+            body.push_str(&stdout_s);
+            if !body.ends_with('\n') { body.push('\n'); }
+        }
+        if stderr_s.is_empty() && stdout_s.is_empty() {
+            body.push_str(&format!("Command failed (code {}).", code));
+        }
     }
-    if !out.stderr.is_empty() {
-        if !body.ends_with('\n') { body.push('\n'); }
-        body.push_str("--- stderr ---\n");
-        body.push_str(&String::from_utf8_lossy(&out.stderr));
-        if !body.ends_with('\n') { body.push('\n'); }
-    }
-    let status = out.status.code().unwrap_or_default();
-    body.push_str(&format!("\n(exit status: {})\n", status));
-    crate::tui::view_text("ralf output", &body)
+
+    crate::tui::view_text(&format!("ralf — {}", title), &body)
 }
 
 fn run_child_passthrough(args: &[&str]) -> Result<()> {
     let exe = std::env::current_exe()?;
-    let status = Command::new(exe).args(args).status()?;
-    let msg = if let Some(code) = status.code() {
-        format!("Command exited with status {}", code)
+    let status = Command::new(exe).args(args).env("RALF_TUI", "1").status()?;
+    let msg = if status.success() {
+        "Done.".to_string()
     } else {
-        "Command terminated".to_string()
+        format!("Failed (code {})", status.code().unwrap_or_default())
     };
-    crate::tui::notify("Completed", &msg)
+    crate::tui::notify("ralf", &msg)
 }
 
 fn run_theme_settings() -> Result<()> {

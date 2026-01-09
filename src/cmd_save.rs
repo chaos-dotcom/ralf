@@ -8,6 +8,7 @@ pub fn run() -> Result<()> {
 
     let sh_target = cfg_dir.join("aliases.sh");
     let fish_target = cfg_dir.join("aliases.fish");
+    let in_tui = std::env::var("RALF_TUI").is_ok();
 
     // Helpers
     let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"").replace('$', "\\$");
@@ -68,9 +69,11 @@ pub fn run() -> Result<()> {
     // Save unified files
     std::fs::write(&sh_target, sh_content)?;
     std::fs::write(&fish_target, fish_content)?;
-    println!("Saved unified aliases to:");
-    println!("- {}", crate::paths::friendly(&sh_target));
-    println!("- {}", crate::paths::friendly(&fish_target));
+    if !in_tui {
+        println!("Saved unified aliases to:");
+        println!("- {}", crate::paths::friendly(&sh_target));
+        println!("- {}", crate::paths::friendly(&fish_target));
+    }
 
     // Backward-compat: also write to requested aliases file path (env/default)
     let is_target_fish = {
@@ -96,7 +99,9 @@ pub fn run() -> Result<()> {
         c
     };
 
-    println!("Saving to {}", p.aliases_file.display());
+    if !in_tui {
+        println!("Saving to {}", p.aliases_file.display());
+    }
     if let Some(parent) = p.aliases_file.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -117,12 +122,16 @@ pub fn run() -> Result<()> {
                         let sep = if existing.ends_with('\n') { "" } else { "\n" };
                         let new = format!("{existing}{sep}{snippet}");
                         std::fs::write(rc, new)?;
-                        println!("Added ralf init to {}", crate::paths::friendly(rc));
+                        if !in_tui {
+                            println!("Added ralf init to {}", crate::paths::friendly(rc));
+                        }
                     }
                 }
                 Err(_) => {
                     std::fs::write(rc, snippet)?;
-                    println!("Created {}", crate::paths::friendly(rc));
+                    if !in_tui {
+                        println!("Created {}", crate::paths::friendly(rc));
+                    }
                 }
             }
         }
@@ -144,17 +153,25 @@ pub fn run() -> Result<()> {
                     let sep = if existing.ends_with('\n') { "" } else { "\n" };
                     let new = format!("{existing}{sep}{stub}");
                     std::fs::write(&fish_stub, new)?;
-                    println!("Added ralf init to {}", crate::paths::friendly(&fish_stub));
+                    if !in_tui {
+                        println!("Added ralf init to {}", crate::paths::friendly(&fish_stub));
+                    }
                 }
             }
             Err(_) => {
                 std::fs::write(&fish_stub, stub)?;
-                println!("Created {}", crate::paths::friendly(&fish_stub));
+                if !in_tui {
+                    println!("Created {}", crate::paths::friendly(&fish_stub));
+                }
             }
         }
     }
 
-    println!("To apply the new aliases to the current session, run:");
-    println!("$ source {}", crate::paths::friendly(&p.aliases_file));
+    if in_tui {
+        println!("Saved aliases.");
+    } else {
+        println!("To apply the new aliases to the current session, run:");
+        println!("$ source {}", crate::paths::friendly(&p.aliases_file));
+    }
     Ok(())
 }

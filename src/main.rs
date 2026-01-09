@@ -22,6 +22,7 @@ mod cmd_info;
 mod cmd_machine;
 mod cmd_menu;
 mod cmd_help;
+mod cmd_clean;
 mod cmd_reset;
 
 fn main() -> Result<()> {
@@ -35,6 +36,7 @@ fn main() -> Result<()> {
         Some(cli::Commands::Edit { what }) => cmd_edit::run(what)?,
         Some(cli::Commands::Which { code, subcode }) => cmd_which::run(code, subcode)?,
         Some(cli::Commands::Help { topic }) => cmd_help::run(topic)?,
+        Some(cli::Commands::Clean { purge }) => cmd_clean::run(purge)?,
         Some(cli::Commands::Reset) => cmd_reset::run()?,
         Some(cli::Commands::Upgrade) => cmd_upgrade::run()?,
         Some(cli::Commands::Machine { name }) => cmd_machine::run(name)?,
