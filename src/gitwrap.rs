@@ -75,17 +75,35 @@ pub fn commit_all_and_push(repo_path: &Path) -> Result<()> {
         .current_dir(repo_path)
         .status();
 
-    // Stage new files so they get committed
-    let _ = Command::new("git")
+    // Stage all changes (new, modified, deleted)
+    let add_status = Command::new("git")
         .args(["add", "-A"])
         .current_dir(repo_path)
-        .status();
+        .status()
+        .context("failed to spawn git add")?;
+    if !add_status.success() {
+        anyhow::bail!("git add failed");
+    }
 
-    // Commit tracked changes; ignore non-zero (nothing to commit)
-    let _ = Command::new("git")
-        .args(["commit", "-am", "automatic push"])
+    // Commit whatever is in the index. If there's nothing to commit, continue silently.
+    let commit_out = Command::new("git")
+        .args(["commit", "-m", "automatic push"])
         .current_dir(repo_path)
-        .status();
+        .output()
+        .context("failed to spawn git commit")?;
+    if !commit_out.status.success() {
+        let status_out = Command::new("git")
+            .args(["status", "--porcelain"])
+            .current_dir(repo_path)
+            .output()
+            .context("failed to run git status")?;
+        let dirty = !String::from_utf8_lossy(&status_out.stdout).trim().is_empty();
+        if dirty {
+            let stderr = String::from_utf8_lossy(&commit_out.stderr);
+            anyhow::bail!("git commit failed: {}", stderr.trim());
+        }
+        // else: nothing to commit, proceed to push
+    }
 
     let status = Command::new("git")
         .arg("push")
