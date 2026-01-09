@@ -13,8 +13,12 @@ pub fn run() -> Result<()> {
             "Edit base config",
             "Edit machine config",
             "Which alias",
+            "Machine",
             "Info",
             "Help",
+            "Clean",
+            "Reset",
+            "Upgrade",
             "Theme",
             "Exit",
         ];
@@ -41,10 +45,32 @@ pub fn run() -> Result<()> {
                     }
                 }
             }
-            Some(8) => { run_child_capture(&["info"])?; }
-            Some(9) => { run_child_capture(&["help"])?; }
-            Some(10) => { run_theme_settings()?; }
-            Some(11) | None => break,
+            Some(8) => {
+                // Machine: prompt to set, or show current if blank
+                if let Some(mut name) = crate::tui::input("Enter machine name to set, Enter to show current, Esc to cancel")? {
+                    name = name.trim().to_string();
+                    if name.is_empty() {
+                        run_child_capture(&["machine"])?;
+                    } else {
+                        run_child_capture(&["machine", &name])?;
+                    }
+                }
+            }
+            Some(9) => { run_child_capture(&["info"])?; }
+            Some(10) => { run_child_capture(&["help"])?; }
+            Some(11) => {
+                // Clean: confirm optional purge
+                let purge = crate::tui::confirm("Also delete the connected repo directory? [yN]")?;
+                if purge {
+                    run_child_capture(&["clean", "--purge"])?;
+                } else {
+                    run_child_capture(&["clean"])?;
+                }
+            }
+            Some(12) => { run_child_capture(&["reset"])?; }
+            Some(13) => { run_child_capture(&["upgrade"])?; }
+            Some(14) => { run_theme_settings()?; }
+            Some(15) | None => break,
             _ => {}
         }
     }
