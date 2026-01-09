@@ -9,6 +9,14 @@ pub struct Paths {
     pub config_file: PathBuf,
 }
 
+pub fn config_dir() -> PathBuf {
+    if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
+        PathBuf::from(shellexpand::tilde(&xdg).into_owned()).join("ralf")
+    } else {
+        home_dir().unwrap().join(".config").join("ralf")
+    }
+}
+
 pub fn env_rc_file() -> PathBuf {
     if let Ok(s) = std::env::var("RALF_RC_FILE")
         .or_else(|_| std::env::var("ralf_RC_FILE"))
@@ -41,18 +49,11 @@ pub fn env_aliases_file() -> PathBuf {
                 .ok()
                 .map(|s| s.ends_with("fish") || s.contains("/fish"))
                 .unwrap_or(false);
+        let dir = config_dir();
         if is_fish {
-            return home_dir().unwrap().join(".config").join("fish").join("conf.d").join("ralf.fish");
-        }
-        let is_zsh = std::env::var("ZSH_VERSION").is_ok()
-            || std::env::var("SHELL")
-                .ok()
-                .map(|s| s.ends_with("zsh") || s.contains("/zsh"))
-                .unwrap_or(false);
-        if is_zsh {
-            home_dir().unwrap().join(".zsh_aliases")
+            dir.join("aliases.fish")
         } else {
-            home_dir().unwrap().join(".bash_aliases")
+            dir.join("aliases.sh")
         }
     }
 }
