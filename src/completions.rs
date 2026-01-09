@@ -11,8 +11,8 @@ pub fn generate_completions(config_file: &Path) -> Result<String> {
 
     let mut out = String::new();
     out.push_str("# Completions\n");
-    out.push_str("if [ -n \"$ZSH_VERSION\" ]; then\n  autoload -U +X compinit && compinit\n  autoload -U +X bashcompinit && bashcompinit\nfi\n");
-    out.push_str("if command -v complete &> /dev/null ; then\n");
+    out.push_str("if [ -n \"$ZSH_VERSION\" ]; then\n  if ! typeset -f complete >/dev/null 2>&1; then\n    autoload -U +X compinit && compinit\n    autoload -U +X bashcompinit && bashcompinit\n  fi\nfi\n");
+    out.push_str("if command -v complete >/dev/null 2>&1 ; then\n");
 
     let mut current_ali1: Option<String> = None;
     let mut comps: Vec<String> = Vec::new();
@@ -47,8 +47,8 @@ pub fn generate_completions_from_text(text: &str) -> Result<String> {
 
     let mut out = String::new();
     out.push_str("# Completions\n");
-    out.push_str("if [ -n \"$ZSH_VERSION\" ]; then\n  autoload -U +X compinit && compinit\n  autoload -U +X bashcompinit && bashcompinit\nfi\n");
-    out.push_str("if command -v complete &> /dev/null ; then\n");
+    out.push_str("if [ -n \"$ZSH_VERSION\" ]; then\n  if ! typeset -f complete >/dev/null 2>&1; then\n    autoload -U +X compinit && compinit\n    autoload -U +X bashcompinit && bashcompinit\n  fi\nfi\n");
+    out.push_str("if command -v complete >/dev/null 2>&1 ; then\n");
 
     let mut current_ali1: Option<String> = None;
     let mut comps: Vec<String> = Vec::new();
