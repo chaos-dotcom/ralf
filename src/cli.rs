@@ -39,6 +39,13 @@ pub enum Commands {
     #[command(alias = "h")]
     Help { topic: Option<String> },
 
+    #[command(alias = "cl")]
+    /// Remove ralf init stubs and generated files; with --purge also delete the repo directory
+    Clean {
+        #[arg(long, help = "Also delete the connected repo directory (DANGEROUS)")]
+        purge: bool,
+    },
+
     /// Remove generated aliases and local ralf markers (does not delete your repo)
     Reset,
 
