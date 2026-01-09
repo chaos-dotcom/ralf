@@ -1,4 +1,3 @@
-use crate::completions;
 use crate::paths;
 use anyhow::Result;
 use regex::Regex;

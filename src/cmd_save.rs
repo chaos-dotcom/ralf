@@ -1,5 +1,4 @@
 use anyhow::Result;
-use std::fs;
 
 pub fn run() -> Result<()> {
     let p = crate::paths::find_config_or_exit()?;
@@ -16,30 +15,44 @@ pub fn run() -> Result<()> {
     let machine = crate::config_merge::resolve_machine_id(&p);
     let mid_q = esc(&machine);
     let env_block_sh = |aliases_abs: &str| -> String {
-        format!(
-            "# ralf environment (auto-set)\n\
-             export ralf_RC_FILE=\"${{ralf_RC_FILE:-{rc}}}\"\n\
-             export ALF_RC_FILE=\"${{ALF_RC_FILE:-{rc}}}\"\n\
-             export ralf_ALIASES_FILE=\"${{ralf_ALIASES_FILE:-{al}}}\"\n\
-             export ALF_ALIASES_FILE=\"${{ALF_ALIASES_FILE:-{al}}}\"\n\
-             export ralf_MACHINE=\"${{ralf_MACHINE:-{mid}}}\"\n\
-             if [ -z \"$RALF_MACHINE\" ] && [ -z \"$ralf_MACHINE\" ] && [ -z \"$ALF_MACHINE\" ] && [ -z \"$alf_MACHINE\" ]; then\n\
-             \  export RALF_MACHINE=\"{mid}\"; export ralf_MACHINE=\"{mid}\"; export ALF_MACHINE=\"{mid}\"; export alf_MACHINE=\"{mid}\";\n\
-             fi\n\n",
+        format!(r#"# ralf environment (auto-set)
+    export ralf_RC_FILE="${{ralf_RC_FILE:-{rc}}}"
+    export ALF_RC_FILE="${{ALF_RC_FILE:-{rc}}}"
+    export ralf_ALIASES_FILE="${{ralf_ALIASES_FILE:-{al}}}"
+    export ALF_ALIASES_FILE="${{ALF_ALIASES_FILE:-{al}}}"
+    export ralf_MACHINE="${{ralf_MACHINE:-{mid}}}"
+    if [ -z "$RALF_MACHINE" ] && [ -z "$ralf_MACHINE" ] && [ -z "$ALF_MACHINE" ] && [ -z "$alf_MACHINE" ]; then
+      export RALF_MACHINE="{mid}"; export ralf_MACHINE="{mid}"; export ALF_MACHINE="{mid}"; export alf_MACHINE="{mid}";
+    fi
+
+    "#,
             rc = rc_q,
             al = esc(aliases_abs),
             mid = mid_q
         )
     };
     let env_block_fish = |aliases_abs: &str| -> String {
-        format!(
-            "# ralf environment (auto-set)\n\
-             if not set -q ralf_RC_FILE\n  set -gx ralf_RC_FILE \"{rc}\"\nend\n\
-             if not set -q ALF_RC_FILE\n  set -gx ALF_RC_FILE \"{rc}\"\nend\n\
-             if not set -q ralf_ALIASES_FILE\n  set -gx ralf_ALIASES_FILE \"{al}\"\nend\n\
-             if not set -q ALF_ALIASES_FILE\n  set -gx ALF_ALIASES_FILE \"{al}\"\nend\n\
-             if not set -q ralf_MACHINE\n  set -gx ralf_MACHINE \"{mid}\"\nend\n\
-             if not set -q RALF_MACHINE; and not set -q ralf_MACHINE; and not set -q ALF_MACHINE; and not set -q alf_MACHINE\n  set -gx RALF_MACHINE \"{mid}\"; set -gx ralf_MACHINE \"{mid}\"; set -gx ALF_MACHINE \"{mid}\"; set -gx alf_MACHINE \"{mid}\"\nend\n\n",
+        format!(r#"# ralf environment (auto-set)
+    if not set -q ralf_RC_FILE
+      set -gx ralf_RC_FILE "{rc}"
+    end
+    if not set -q ALF_RC_FILE
+      set -gx ALF_RC_FILE "{rc}"
+    end
+    if not set -q ralf_ALIASES_FILE
+      set -gx ralf_ALIASES_FILE "{al}"
+    end
+    if not set -q ALF_ALIASES_FILE
+      set -gx ALF_ALIASES_FILE "{al}"
+    end
+    if not set -q ralf_MACHINE
+      set -gx ralf_MACHINE "{mid}"
+    end
+    if not set -q RALF_MACHINE; and not set -q ralf_MACHINE; and not set -q ALF_MACHINE; and not set -q alf_MACHINE
+      set -gx RALF_MACHINE "{mid}"; set -gx ralf_MACHINE "{mid}"; set -gx ALF_MACHINE "{mid}"; set -gx alf_MACHINE "{mid}"
+    end
+
+    "#,
             rc = rc_q,
             al = esc(aliases_abs),
             mid = mid_q
