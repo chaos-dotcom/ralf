@@ -39,6 +39,9 @@ pub enum Commands {
     #[command(alias = "h")]
     Help { topic: Option<String> },
 
+    /// Remove generated aliases and local ralf markers (does not delete your repo)
+    Reset,
+
     Upgrade,
     Info,
 }
