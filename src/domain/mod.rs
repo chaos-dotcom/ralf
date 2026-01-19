@@ -1,7 +1,7 @@
+pub mod merge;
 pub mod model;
 pub mod parse;
-pub mod merge;
 
+pub use merge::{merge_blocks, serialize_blocks};
 pub use model::AliasBlock;
 pub use parse::parse_text;
-pub use merge::{merge_blocks, serialize_blocks};

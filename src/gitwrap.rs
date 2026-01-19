@@ -67,11 +67,23 @@ pub fn commit_all_and_push(repo_path: &Path) -> Result<()> {
 
     // Untrack files that should be ignored (ignore failures)
     let _ = Command::new("git")
-        .args(["rm", "--cached", "--ignore-unmatch", "--quiet", ".ralf_machine"])
+        .args([
+            "rm",
+            "--cached",
+            "--ignore-unmatch",
+            "--quiet",
+            ".ralf_machine",
+        ])
         .current_dir(repo_path)
         .status();
     let _ = Command::new("git")
-        .args(["rm", "--cached", "--ignore-unmatch", "--quiet", "alf.conf.save"])
+        .args([
+            "rm",
+            "--cached",
+            "--ignore-unmatch",
+            "--quiet",
+            "alf.conf.save",
+        ])
         .current_dir(repo_path)
         .status();
 
@@ -97,7 +109,9 @@ pub fn commit_all_and_push(repo_path: &Path) -> Result<()> {
             .current_dir(repo_path)
             .output()
             .context("failed to run git status")?;
-        let dirty = !String::from_utf8_lossy(&status_out.stdout).trim().is_empty();
+        let dirty = !String::from_utf8_lossy(&status_out.stdout)
+            .trim()
+            .is_empty();
         if dirty {
             let stderr = String::from_utf8_lossy(&commit_out.stderr);
             anyhow::bail!("git commit failed: {}", stderr.trim());

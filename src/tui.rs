@@ -4,6 +4,8 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use dirs::home_dir;
+use ratatui::widgets::canvas::{Canvas, Circle};
 use ratatui::{
     backend::CrosstermBackend,
     layout::{Alignment, Constraint, Direction, Layout},
@@ -12,18 +14,23 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
-use ratatui::widgets::canvas::{Canvas, Circle};
 use ratatui_core::symbols::marker::Marker;
-use std::io::{stdout, Stdout};
 use std::fs;
+use std::io::{stdout, Stdout};
 use std::path::PathBuf;
-use dirs::home_dir;
 
-const TRANS_BLUE: Color = Color::Rgb(0x5B, 0xCF, 0xFA);   // #5BCFFA
-const TRANS_PINK: Color = Color::Rgb(0xF5, 0xA9, 0xB8);   // #F5A9B8
-const TRANS_WHITE: Color = Color::Rgb(0xFF, 0xFF, 0xFF);  // #FFFFFF
+const TRANS_BLUE: Color = Color::Rgb(0x5B, 0xCF, 0xFA); // #5BCFFA
+const TRANS_PINK: Color = Color::Rgb(0xF5, 0xA9, 0xB8); // #F5A9B8
+const TRANS_WHITE: Color = Color::Rgb(0xFF, 0xFF, 0xFF); // #FFFFFF
 
-enum ThemeName { Trans, Lesbian, Bisexual, NonBinary, Intersex, Progress }
+enum ThemeName {
+    Trans,
+    Lesbian,
+    Bisexual,
+    NonBinary,
+    Intersex,
+    Progress,
+}
 
 fn theme_file() -> PathBuf {
     home_dir().unwrap_or_default().join(".ralf_theme")
@@ -42,8 +49,12 @@ fn parse_theme(s: &str) -> ThemeName {
 }
 
 pub fn current_theme() -> ThemeName {
-    if let Ok(s) = std::env::var("RALF_THEME") { return parse_theme(&s); }
-    if let Ok(s) = fs::read_to_string(theme_file()) { return parse_theme(&s); }
+    if let Ok(s) = std::env::var("RALF_THEME") {
+        return parse_theme(&s);
+    }
+    if let Ok(s) = fs::read_to_string(theme_file()) {
+        return parse_theme(&s);
+    }
     ThemeName::Trans
 }
 
@@ -53,7 +64,14 @@ pub fn set_theme_by_name(name: &str) -> Result<()> {
 }
 
 pub fn theme_options() -> &'static [&'static str] {
-    &["Trans", "Lesbian", "Bisexual", "Non-binary", "Intersex", "Progress"]
+    &[
+        "Trans",
+        "Lesbian",
+        "Bisexual",
+        "Non-binary",
+        "Intersex",
+        "Progress",
+    ]
 }
 
 fn theme_bg_color(t: ThemeName) -> Option<Color> {
@@ -71,65 +89,89 @@ fn theme_palette(t: ThemeName) -> (Vec<Color>, Color, Color) {
         }
         ThemeName::Lesbian => {
             let stripes = vec![
-                Color::Rgb(0xD5,0x2D,0x00),
-                Color::Rgb(0xEF,0x76,0x27),
-                Color::Rgb(0xFF,0x9A,0x56),
-                Color::Rgb(0xFF,0xFF,0xFF),
-                Color::Rgb(0xD1,0x62,0xA4),
-                Color::Rgb(0xB5,0x56,0x90),
-                Color::Rgb(0xA3,0x02,0x62),
+                Color::Rgb(0xD5, 0x2D, 0x00),
+                Color::Rgb(0xEF, 0x76, 0x27),
+                Color::Rgb(0xFF, 0x9A, 0x56),
+                Color::Rgb(0xFF, 0xFF, 0xFF),
+                Color::Rgb(0xD1, 0x62, 0xA4),
+                Color::Rgb(0xB5, 0x56, 0x90),
+                Color::Rgb(0xA3, 0x02, 0x62),
             ];
-            (stripes, Color::Rgb(0xA3,0x02,0x62), Color::Rgb(0xD5,0x2D,0x00))
+            (
+                stripes,
+                Color::Rgb(0xA3, 0x02, 0x62),
+                Color::Rgb(0xD5, 0x2D, 0x00),
+            )
         }
         ThemeName::Bisexual => {
             let stripes = vec![
-                Color::Rgb(0xD6,0x02,0x70),
-                Color::Rgb(0x9B,0x4F,0x96),
-                Color::Rgb(0x00,0x38,0xA8),
+                Color::Rgb(0xD6, 0x02, 0x70),
+                Color::Rgb(0x9B, 0x4F, 0x96),
+                Color::Rgb(0x00, 0x38, 0xA8),
             ];
-            (stripes, Color::Rgb(0xD6,0x02,0x70), Color::Rgb(0x00,0x38,0xA8))
+            (
+                stripes,
+                Color::Rgb(0xD6, 0x02, 0x70),
+                Color::Rgb(0x00, 0x38, 0xA8),
+            )
         }
         ThemeName::NonBinary => {
             let stripes = vec![
-                Color::Rgb(0xFF,0xF4,0x30),
-                Color::Rgb(0xFF,0xFF,0xFF),
-                Color::Rgb(0x9C,0x59,0xD1),
-                Color::Rgb(0x2C,0x2C,0x2C),
+                Color::Rgb(0xFF, 0xF4, 0x30),
+                Color::Rgb(0xFF, 0xFF, 0xFF),
+                Color::Rgb(0x9C, 0x59, 0xD1),
+                Color::Rgb(0x2C, 0x2C, 0x2C),
             ];
-            (stripes, Color::Rgb(0x9C,0x59,0xD1), Color::Rgb(0x9C,0x59,0xD1))
+            (
+                stripes,
+                Color::Rgb(0x9C, 0x59, 0xD1),
+                Color::Rgb(0x9C, 0x59, 0xD1),
+            )
         }
         ThemeName::Intersex => {
             let stripes = vec![
-                Color::Rgb(0xFF,0xD8,0x00),
-                Color::Rgb(0xFF,0xD8,0x00),
-                Color::Rgb(0xFF,0xD8,0x00),
-                Color::Rgb(0xFF,0xD8,0x00),
-                Color::Rgb(0xFF,0xD8,0x00),
+                Color::Rgb(0xFF, 0xD8, 0x00),
+                Color::Rgb(0xFF, 0xD8, 0x00),
+                Color::Rgb(0xFF, 0xD8, 0x00),
+                Color::Rgb(0xFF, 0xD8, 0x00),
+                Color::Rgb(0xFF, 0xD8, 0x00),
             ];
-            (stripes, Color::Rgb(0x79,0x02,0xAA), Color::Rgb(0x79,0x02,0xAA))
+            (
+                stripes,
+                Color::Rgb(0x79, 0x02, 0xAA),
+                Color::Rgb(0x79, 0x02, 0xAA),
+            )
         }
         ThemeName::Progress => {
             // Simplified horizontal stripes approximation
             let stripes = vec![
                 Color::Black,
-                Color::Rgb(0x78,0x4F,0x17), // brown
-                Color::Rgb(0x5B,0xCF,0xFA), // trans blue
-                Color::Rgb(0xF5,0xA9,0xB8), // trans pink
-                Color::Rgb(0xFF,0xFF,0xFF), // white
-                Color::Rgb(0xE4,0x03,0x03), // red
-                Color::Rgb(0xFF,0x8C,0x00), // orange
-                Color::Rgb(0xFF,0xED,0x00), // yellow
-                Color::Rgb(0x00,0x80,0x26), // green
-                Color::Rgb(0x00,0x4D,0xFF), // blue
-                Color::Rgb(0x75,0x07,0x87), // violet
+                Color::Rgb(0x78, 0x4F, 0x17), // brown
+                Color::Rgb(0x5B, 0xCF, 0xFA), // trans blue
+                Color::Rgb(0xF5, 0xA9, 0xB8), // trans pink
+                Color::Rgb(0xFF, 0xFF, 0xFF), // white
+                Color::Rgb(0xE4, 0x03, 0x03), // red
+                Color::Rgb(0xFF, 0x8C, 0x00), // orange
+                Color::Rgb(0xFF, 0xED, 0x00), // yellow
+                Color::Rgb(0x00, 0x80, 0x26), // green
+                Color::Rgb(0x00, 0x4D, 0xFF), // blue
+                Color::Rgb(0x75, 0x07, 0x87), // violet
             ];
-            (stripes, Color::Rgb(0x75,0x07,0x87), Color::Rgb(0x00,0x4D,0xFF))
+            (
+                stripes,
+                Color::Rgb(0x75, 0x07, 0x87),
+                Color::Rgb(0x00, 0x4D, 0xFF),
+            )
         }
     }
 }
 
 // Helper: compute x/y bounds for a pixel-perfect circle in Canvas world space
-fn circle_bounds_for(area: ratatui::layout::Rect, x_scale: f64, y_scale: f64) -> ([f64; 2], [f64; 2]) {
+fn circle_bounds_for(
+    area: ratatui::layout::Rect,
+    x_scale: f64,
+    y_scale: f64,
+) -> ([f64; 2], [f64; 2]) {
     // aspect = height/width so that a circle in world coords looks circular on screen
     let aspect = area.height.max(1) as f64 / area.width.max(1) as f64;
     ([-x_scale, x_scale], [-aspect * y_scale, aspect * y_scale])
@@ -196,7 +238,10 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
             }
             // Input block
             let block = Block::default()
-                .title(Line::from(prompt).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
+                .title(
+                    Line::from(prompt)
+                        .style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)),
+                )
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(border_fg));
             let inner = block.inner(area);
@@ -214,7 +259,12 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
                         let step = 0.01;
                         for i in 0..=4 {
                             let r = base - (i as f64) * step;
-                            ctx.draw(&Circle { x: 0.0, y: 0.0, radius: r, color: purple });
+                            ctx.draw(&Circle {
+                                x: 0.0,
+                                y: 0.0,
+                                radius: r,
+                                color: purple,
+                            });
                         }
                     });
                 f.render_widget(canvas, inner);
@@ -226,7 +276,11 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
             f.render_widget(text, inner);
             let hint = Paragraph::new("Type text, Enter to submit, Esc to cancel, Ctrl-U to clear")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
+                .style(
+                    Style::default()
+                        .fg(title_fg)
+                        .bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)),
+                );
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -240,11 +294,15 @@ pub fn input(prompt: &str) -> Result<Option<String>> {
                 match k.code {
                     KeyCode::Esc => break None,
                     KeyCode::Enter => break Some(buf.clone()),
-                    KeyCode::Backspace => { buf.pop(); }
+                    KeyCode::Backspace => {
+                        buf.pop();
+                    }
                     KeyCode::Char(c) => {
                         if k.modifiers.contains(KeyModifiers::CONTROL) {
                             // simple Ctrl-U clear
-                            if c == 'u' || c == 'U' { buf.clear(); }
+                            if c == 'u' || c == 'U' {
+                                buf.clear();
+                            }
                         } else {
                             buf.push(c);
                         }
@@ -293,9 +351,11 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
             }
 
-
             let block = Block::default()
-                .title(Line::from(title).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
+                .title(
+                    Line::from(title)
+                        .style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)),
+                )
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(border_fg));
             let inner = block.inner(area);
@@ -313,7 +373,12 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
                         let step = 0.01;
                         for i in 0..=4 {
                             let r = base - (i as f64) * step;
-                            ctx.draw(&Circle { x: 0.0, y: 0.0, radius: r, color: purple });
+                            ctx.draw(&Circle {
+                                x: 0.0,
+                                y: 0.0,
+                                radius: r,
+                                color: purple,
+                            });
                         }
                     });
                 f.render_widget(canvas, inner);
@@ -324,7 +389,8 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
             let start = min(scroll, total.saturating_sub(height));
             let end = min(start + height, total);
             let visible = if start < end { &lines[start..end] } else { &[] };
-            let mut text = Paragraph::new(visible.join("\n")).style(Style::default().fg(Color::Black));
+            let mut text =
+                Paragraph::new(visible.join("\n")).style(Style::default().fg(Color::Black));
             if let Some(bg) = theme_bg_color(current_theme()) {
                 text = text.style(Style::default().fg(Color::Black).bg(bg));
             }
@@ -332,7 +398,11 @@ pub fn view_text(title: &str, body: &str) -> Result<()> {
 
             let hint = Paragraph::new("↑/↓ PgUp/PgDn Home/End to scroll, q/Esc/Enter to return")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
+                .style(
+                    Style::default()
+                        .fg(title_fg)
+                        .bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)),
+                );
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -393,9 +463,11 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
                 f.render_widget(Block::default().style(Style::default().bg(*color)), *chunk);
             }
 
-
             let block = Block::default()
-                .title(Line::from(title).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
+                .title(
+                    Line::from(title)
+                        .style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)),
+                )
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(border_fg));
             f.render_widget(block.clone(), area);
@@ -413,14 +485,20 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
                         let step = 0.01;
                         for i in 0..=4 {
                             let r = base - (i as f64) * step;
-                            ctx.draw(&Circle { x: 0.0, y: 0.0, radius: r, color: purple });
+                            ctx.draw(&Circle {
+                                x: 0.0,
+                                y: 0.0,
+                                radius: r,
+                                color: purple,
+                            });
                         }
                     });
                 f.render_widget(canvas, inner);
             }
 
             let inner = block.inner(area);
-            let mut text = Paragraph::new(message.to_string()).style(Style::default().fg(Color::Black));
+            let mut text =
+                Paragraph::new(message.to_string()).style(Style::default().fg(Color::Black));
             if let Some(bg) = theme_bg_color(current_theme()) {
                 text = text.style(Style::default().fg(Color::Black).bg(bg));
             }
@@ -428,7 +506,11 @@ pub fn notify(title: &str, message: &str) -> Result<()> {
 
             let hint = Paragraph::new("Press any key to return")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
+                .style(
+                    Style::default()
+                        .fg(title_fg)
+                        .bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)),
+                );
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),
@@ -495,8 +577,8 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
                     .marker(Marker::Braille)
                     .paint(|ctx| {
                         let purple = Color::Rgb(0x79, 0x02, 0xAA);
-                        let base = 0.35;   // half the previous size
-                        let step = 0.01;   // thinner stroke layers
+                        let base = 0.35; // half the previous size
+                        let step = 0.01; // thinner stroke layers
                         for i in 0..=4 {
                             let r = base - (i as f64) * step;
                             ctx.draw(&Circle {
@@ -511,7 +593,10 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
             }
 
             let block = Block::default()
-                .title(Line::from(title).style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)))
+                .title(
+                    Line::from(title)
+                        .style(Style::default().fg(title_fg).add_modifier(Modifier::BOLD)),
+                )
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(border_fg));
 
@@ -539,7 +624,11 @@ fn list_select(title: &str, items: &[&str]) -> Result<Option<usize>> {
 
             let hint = Paragraph::new("Use ↑/↓ to move, Enter to select, Esc to abort")
                 .alignment(Alignment::Center)
-                .style(Style::default().fg(title_fg).bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)));
+                .style(
+                    Style::default()
+                        .fg(title_fg)
+                        .bg(theme_bg_color(current_theme()).unwrap_or(Color::Reset)),
+                );
             let hint_area = ratatui::layout::Rect {
                 x: area.x,
                 y: area.y.saturating_add(area.height.saturating_sub(2)),

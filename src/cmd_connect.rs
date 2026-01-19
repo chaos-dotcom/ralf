@@ -23,7 +23,10 @@ pub fn run(args: ConnectArgs) -> Result<()> {
     }
 
     let force_tui = args.tui
-        || matches!(std::env::var("RALF_TUI_FORCE").ok().as_deref(), Some("1") | Some("true") | Some("yes") | Some("on"));
+        || matches!(
+            std::env::var("RALF_TUI_FORCE").ok().as_deref(),
+            Some("1") | Some("true") | Some("yes") | Some("on")
+        );
 
     // Destination and rc paths
     let cwd = std::env::current_dir()?;
@@ -78,10 +81,7 @@ pub fn run(args: ConnectArgs) -> Result<()> {
         println!();
         if !dest.exists() {
             println!("  clone  {}", repo_url);
-            println!(
-                "     to  ./{}",
-                dest.file_name().unwrap().to_string_lossy()
-            );
+            println!("     to  ./{}", dest.file_name().unwrap().to_string_lossy());
             println!();
         }
         println!("  write  {}/ralf-conf", cwd.display());

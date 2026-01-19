@@ -11,12 +11,17 @@ pub fn run() -> Result<()> {
     let in_tui = std::env::var("RALF_TUI").is_ok();
 
     // Helpers
-    let esc = |s: &str| s.replace('\\', "\\\\").replace('"', "\\\"").replace('$', "\\$");
+    let esc = |s: &str| {
+        s.replace('\\', "\\\\")
+            .replace('"', "\\\"")
+            .replace('$', "\\$")
+    };
     let rc_q = esc(&p.rc_file.to_string_lossy());
     let machine = crate::config_merge::resolve_machine_id(&p);
     let mid_q = esc(&machine);
     let env_block_sh = |aliases_abs: &str| -> String {
-        format!(r#"# ralf environment (auto-set)
+        format!(
+            r#"# ralf environment (auto-set)
     export ralf_RC_FILE="${{ralf_RC_FILE:-{rc}}}"
     export ALF_RC_FILE="${{ALF_RC_FILE:-{rc}}}"
     export ralf_ALIASES_FILE="${{ralf_ALIASES_FILE:-{al}}}"
@@ -33,7 +38,8 @@ pub fn run() -> Result<()> {
         )
     };
     let env_block_fish = |aliases_abs: &str| -> String {
-        format!(r#"# ralf environment (auto-set)
+        format!(
+            r#"# ralf environment (auto-set)
     if not set -q ralf_RC_FILE
       set -gx ralf_RC_FILE "{rc}"
     end
@@ -62,9 +68,17 @@ pub fn run() -> Result<()> {
 
     // Generate both unified variants
     let mut sh_content = crate::generator::generate_config_sh_from_text(&text)?;
-    sh_content = format!("{}{}", env_block_sh(&sh_target.to_string_lossy()), sh_content);
+    sh_content = format!(
+        "{}{}",
+        env_block_sh(&sh_target.to_string_lossy()),
+        sh_content
+    );
     let mut fish_content = crate::generator::generate_config_fish_from_text(&text)?;
-    fish_content = format!("{}{}", env_block_fish(&fish_target.to_string_lossy()), fish_content);
+    fish_content = format!(
+        "{}{}",
+        env_block_fish(&fish_target.to_string_lossy()),
+        fish_content
+    );
 
     // Save unified files
     std::fs::write(&sh_target, sh_content)?;
@@ -137,7 +151,11 @@ pub fn run() -> Result<()> {
         }
 
         // fish: conf.d stub that sources unified fish file
-        let fish_stub = home.join(".config").join("fish").join("conf.d").join("ralf.fish");
+        let fish_stub = home
+            .join(".config")
+            .join("fish")
+            .join("conf.d")
+            .join("ralf.fish");
         if let Some(parent) = fish_stub.parent() {
             std::fs::create_dir_all(parent)?;
         }

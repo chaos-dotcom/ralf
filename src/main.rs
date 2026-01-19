@@ -2,28 +2,28 @@ use anyhow::Result;
 use clap::Parser;
 
 mod cli;
-mod paths;
-mod generator;
 mod completions;
-mod tui;
-mod gitwrap;
 mod config_merge;
 mod domain;
+mod generator;
+mod gitwrap;
+mod paths;
+mod tui;
 
+mod cmd_clean;
 mod cmd_connect;
 mod cmd_download;
-mod cmd_upload;
-mod cmd_generate;
-mod cmd_save;
 mod cmd_edit;
-mod cmd_which;
-mod cmd_upgrade;
+mod cmd_generate;
+mod cmd_help;
 mod cmd_info;
 mod cmd_machine;
 mod cmd_menu;
-mod cmd_help;
-mod cmd_clean;
 mod cmd_reset;
+mod cmd_save;
+mod cmd_upgrade;
+mod cmd_upload;
+mod cmd_which;
 
 fn main() -> Result<()> {
     let cli = cli::Cli::parse();

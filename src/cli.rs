@@ -1,7 +1,11 @@
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser, Debug)]
-#[command(name = "ralf", version, about = "Your Little Rusty Bash & zsh Alias Friend")]
+#[command(
+    name = "ralf",
+    version,
+    about = "Your Little Rusty Bash & zsh Alias Friend"
+)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
@@ -25,7 +29,9 @@ pub enum Commands {
     Save,
 
     #[command(alias = "e")]
-    Edit { what: Option<String> },
+    Edit {
+        what: Option<String>,
+    },
 
     #[command(alias = "w")]
     Which {
@@ -34,10 +40,14 @@ pub enum Commands {
     },
 
     #[command(alias = "m")]
-    Machine { name: Option<String> },
+    Machine {
+        name: Option<String>,
+    },
 
     #[command(alias = "h")]
-    Help { topic: Option<String> },
+    Help {
+        topic: Option<String>,
+    },
 
     #[command(alias = "cl")]
     /// Remove ralf init stubs and generated files; with --purge also delete the repo directory

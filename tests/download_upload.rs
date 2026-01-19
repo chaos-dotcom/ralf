@@ -11,7 +11,10 @@ fn setup_repo_with_rc(temp: &TempDir) -> (String, String) {
     fs::write(repo.child("ralf.conf"), b"g: git\n").unwrap();
     let rc = temp.child("alfrc");
     fs::write(&rc, repo.path().to_string_lossy().as_bytes()).unwrap();
-    (rc.path().to_string_lossy().into_owned(), repo.path().to_string_lossy().into_owned())
+    (
+        rc.path().to_string_lossy().into_owned(),
+        repo.path().to_string_lossy().into_owned(),
+    )
 }
 
 #[test]

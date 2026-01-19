@@ -27,10 +27,16 @@ fn zsh_can_use_generated_aliases() {
     // Run a zsh one-liner to source and execute "say again zsh-works"
     let out = Command::new("zsh")
         .arg("-lc")
-        .arg(format!("source {}; say again zsh-works", aliases.path().display()))
+        .arg(format!(
+            "source {}; say again zsh-works",
+            aliases.path().display()
+        ))
         .output()
         .unwrap();
 
     assert!(out.status.success());
-    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "zsh-works zsh-works");
+    assert_eq!(
+        String::from_utf8_lossy(&out.stdout).trim(),
+        "zsh-works zsh-works"
+    );
 }

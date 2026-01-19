@@ -14,7 +14,9 @@ pub fn run(what: Option<String>) -> Result<()> {
             std::fs::write(&machine_overlay, b"")?;
         }
         let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vi".to_string());
-        let status = std::process::Command::new(editor).arg(&machine_overlay).status()?;
+        let status = std::process::Command::new(editor)
+            .arg(&machine_overlay)
+            .status()?;
         if !status.success() {
             anyhow::bail!("editor exited with non-zero status");
         }

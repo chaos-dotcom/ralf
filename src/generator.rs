@@ -1,4 +1,3 @@
-use crate::paths;
 use anyhow::Result;
 use regex::Regex;
 use std::fs;
@@ -7,6 +6,21 @@ use std::path::Path;
 enum State {
     Simple,
     Nested,
+}
+
+pub fn is_reserved_fish(name: &str) -> bool {
+    matches!(
+        name,
+        "count"
+            | "fish_prompt"
+            | "fish_mode_prompt"
+            | "fish_right_prompt"
+            | "fish_title"
+            | "fish_preexec"
+            | "fish_postexec"
+            | "fish_posterror"
+            | "fish_command_not_found"
+    )
 }
 
 pub fn generate_config() -> Result<String> {
@@ -32,7 +46,11 @@ pub(crate) fn generate_config_sh_from_text(text: &str) -> Result<String> {
     let re = Regex::new(r"^( *)([A-Za-z0-9\-]+): *(.+)$")?;
     let mut out = String::new();
     let mut lastcmd: Option<String> = None;
-    let mut state = State::Simple;
+    enum FState {
+        Simple,
+        Nested,
+    }
+    let mut state = FState::Simple;
     let mut case_open = false;
     for line in text.lines() {
         if let Some(caps) = re.captures(line) {
@@ -45,7 +63,10 @@ pub(crate) fn generate_config_sh_from_text(text: &str) -> Result<String> {
                 if local_re.is_match(&cmd) {
                     cmd = format!("command {}", cmd);
                 }
-                out.push_str(&format!("\nunalias {} 1>/dev/null 2>&1\n{}() {{\n", alias, alias));
+                out.push_str(&format!(
+                    "\nunalias {} 1>/dev/null 2>&1\n{}() {{\n",
+                    alias, alias
+                ));
                 lastcmd = Some(cmd);
             } else {
                 if let State::Simple = state {
@@ -95,7 +116,9 @@ pub(crate) fn generate_config_fish_from_text(text: &str) -> Result<String> {
     out.push_str("    return 0\n");
     out.push_str("  end\n");
     out.push_str("  if test -n \"$RALF_SUDO_NO_PROMPT\"\n");
-    out.push_str("    echo \"sudo requires a password; skipping due to RALF_SUDO_NO_PROMPT\" >&2\n");
+    out.push_str(
+        "    echo \"sudo requires a password; skipping due to RALF_SUDO_NO_PROMPT\" >&2\n",
+    );
     out.push_str("    return 1\n");
     out.push_str("  end\n");
     out.push_str("  if status --is-interactive\n");
@@ -106,10 +129,20 @@ pub(crate) fn generate_config_fish_from_text(text: &str) -> Result<String> {
     out.push_str("  end\n");
     out.push_str("end\n\n");
     let mut lastcmd: Option<String> = None;
-    enum FState { Simple, Nested }
+    enum FState {
+        Simple,
+        Nested,
+    }
     let mut state = FState::Simple;
+    let mut skip_current = false;
     let needs_bash_shim = |s: &str| {
-        s.contains("${") || s.contains("$(") || s.contains('`') || s.contains("[[") || s.contains("]]") || s.contains("&&") || s.contains("||")
+        s.contains("${")
+            || s.contains("$(")
+            || s.contains('`')
+            || s.contains("[[")
+            || s.contains("]]")
+            || s.contains("&&")
+            || s.contains("||")
     };
     let has_fish_arg_ref = |s: &str| s.contains("$argv") || s.contains("$rest");
     let sq = |s: &str| s.replace('\'', "'\"'\"'");
@@ -135,17 +168,29 @@ pub(crate) fn generate_config_fish_from_text(text: &str) -> Result<String> {
                     } else if needs_bash_shim(&base) {
                         let script = format!("{base} \"$@\"");
                         let inner = format!("bash -lc '{}' -- $argv", sq(&script));
-                        if was_sudo { format!("__ralf_sudo {}", inner) } else { inner }
+                        if was_sudo {
+                            format!("__ralf_sudo {}", inner)
+                        } else {
+                            inner
+                        }
                     } else {
-                        let body = if has_fish_arg_ref(&base) { base } else { format!("{base} $argv") };
-                        if was_sudo { format!("__ralf_sudo {}", body) } else { body }
+                        let body = if has_fish_arg_ref(&base) {
+                            base
+                        } else {
+                            format!("{base} $argv")
+                        };
+                        if was_sudo {
+                            format!("__ralf_sudo {}", body)
+                        } else {
+                            body
+                        }
                     };
                     match state {
                         FState::Simple => {
                             out.push_str(&format!("  {}\nend\n", fullcmd));
                         }
                         FState::Nested => {
-                            out.push_str("    case '*'\n");
+                            out.push_str("    case '*\n");
                             out.push_str(&format!("      {}\n", fullcmd));
                             out.push_str("  end\n");
                             out.push_str("end\n");
@@ -153,14 +198,26 @@ pub(crate) fn generate_config_fish_from_text(text: &str) -> Result<String> {
                         }
                     }
                 }
+                state = FState::Simple;
+                skip_current = false;
+                if is_reserved_fish(&alias) {
+                    skip_current = true;
+                    continue;
+                }
                 // Rewrite self-referencing commands
                 let local_re = Regex::new(&format!(r"^{}( +|$)", regex::escape(&alias)))?;
                 if local_re.is_match(&cmd) {
                     cmd = format!("command {}", cmd);
                 }
-                out.push_str(&format!("\nfunctions -q {0}; and functions -e {0}\nfunction {0}\n", alias));
+                out.push_str(&format!(
+                    "\nfunctions -q {0}; and functions -e {0}\nfunction {0}\n",
+                    alias
+                ));
                 lastcmd = Some(cmd);
             } else {
+                if skip_current {
+                    continue;
+                }
                 if let FState::Simple = state {
                     out.push_str("  switch $argv[1]\n");
                     state = FState::Nested;
@@ -182,7 +239,10 @@ pub(crate) fn generate_config_fish_from_text(text: &str) -> Result<String> {
                 if bashy {
                     let script = format!("{base} \"$@\"");
                     if was_sudo {
-                        out.push_str(&format!("      __ralf_sudo bash -lc '{}' -- $rest\n", sq(&script)));
+                        out.push_str(&format!(
+                            "      __ralf_sudo bash -lc '{}' -- $rest\n",
+                            sq(&script)
+                        ));
                     } else {
                         out.push_str(&format!("      bash -lc '{}' -- $rest\n", sq(&script)));
                     }
@@ -210,17 +270,29 @@ pub(crate) fn generate_config_fish_from_text(text: &str) -> Result<String> {
         } else if needs_bash_shim(&base) {
             let script = format!("{base} \"$@\"");
             let inner = format!("bash -lc '{}' -- $argv", sq(&script));
-            if was_sudo { format!("__ralf_sudo {}", inner) } else { inner }
+            if was_sudo {
+                format!("__ralf_sudo {}", inner)
+            } else {
+                inner
+            }
         } else {
-            let body = if has_fish_arg_ref(&base) { base } else { format!("{base} $argv") };
-            if was_sudo { format!("__ralf_sudo {}", body) } else { body }
+            let body = if has_fish_arg_ref(&base) {
+                base
+            } else {
+                format!("{base} $argv")
+            };
+            if was_sudo {
+                format!("__ralf_sudo {}", body)
+            } else {
+                body
+            }
         };
         match state {
             FState::Simple => {
                 out.push_str(&format!("  {}\nend\n", fullcmd));
             }
             FState::Nested => {
-                out.push_str("    case '*'\n");
+                out.push_str("    case '*\n");
                 out.push_str(&format!("      {}\n", fullcmd));
                 out.push_str("  end\n");
                 out.push_str("end\n");
@@ -229,7 +301,9 @@ pub(crate) fn generate_config_fish_from_text(text: &str) -> Result<String> {
     }
     out.push('\n');
     if has_subcommands_text(&text) {
-        out.push_str(&crate::completions::generate_fish_completions_from_text(&text)?);
+        out.push_str(&crate::completions::generate_fish_completions_from_text(
+            &text,
+        )?);
     }
     Ok(out)
 }

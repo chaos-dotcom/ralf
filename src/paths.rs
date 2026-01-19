@@ -172,11 +172,7 @@ pub fn find_config_or_exit() -> anyhow::Result<Paths> {
     }
 
     // If rc file is .alfrc, migrate to .ralfrc (if not already present)
-    if rc_env_set && rc_file
-        .file_name()
-        .map(|n| n == ".alfrc")
-        .unwrap_or(false)
-    {
+    if rc_env_set && rc_file.file_name().map(|n| n == ".alfrc").unwrap_or(false) {
         let new_rc = rc_file.with_file_name(".ralfrc");
         let rc_file = if !new_rc.exists() && fs::rename(&rc_file, &new_rc).is_ok() {
             new_rc

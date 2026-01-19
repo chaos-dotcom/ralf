@@ -25,7 +25,10 @@ fn info_when_files_exist() {
     common::cmd()
         .current_dir(temp.path())
         .env("PATH", common::prepend_to_path(bin_dir.path()))
-        .env("FAKE_REMOTE_URL", "https://github.com/DannyBen/ralf-conf.git")
+        .env(
+            "FAKE_REMOTE_URL",
+            "https://github.com/DannyBen/ralf-conf.git",
+        )
         .env("ALF_RC_FILE", rc.path())
         .env("ALF_ALIASES_FILE", aliases.path())
         .arg("info")
@@ -36,5 +39,7 @@ fn info_when_files_exist() {
         .stdout(predicate::str::contains("ALF_ALIASES_FILE:"))
         .stdout(predicate::str::contains("Paths:"))
         .stdout(predicate::str::contains("GitHub:"))
-        .stdout(predicate::str::contains("remote:            https://github.com/DannyBen/ralf-conf.git"));
+        .stdout(predicate::str::contains(
+            "remote:            https://github.com/DannyBen/ralf-conf.git",
+        ));
 }

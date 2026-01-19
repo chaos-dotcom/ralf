@@ -21,7 +21,9 @@ fn connect_https_username_noninteractive() {
         .args(["connect", "DannyBen", "--https"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("Connecting to https://github.com/DannyBen/ralf-conf.git"))
+        .stdout(predicate::str::contains(
+            "Connecting to https://github.com/DannyBen/ralf-conf.git",
+        ))
         .stdout(predicate::str::contains("Storing location in"))
         .stdout(predicate::str::contains("Saving to"));
 
@@ -43,10 +45,16 @@ fn connect_full_url_yes() {
         .env("PATH", common::prepend_to_path(bin_dir.path()))
         .env("ALF_RC_FILE", alfrc.path())
         .env("ALF_ALIASES_FILE", aliases.path())
-        .args(["connect", "https://github.com/DannyBen/alf-conf.git", "--yes"])
+        .args([
+            "connect",
+            "https://github.com/DannyBen/alf-conf.git",
+            "--yes",
+        ])
         .assert()
         .success()
-        .stdout(predicate::str::contains("Connecting to https://github.com/DannyBen/alf-conf.git"))
+        .stdout(predicate::str::contains(
+            "Connecting to https://github.com/DannyBen/alf-conf.git",
+        ))
         .stdout(predicate::str::contains("Storing location in"))
         .stdout(predicate::str::contains("Saving to"));
     let rc_content = std::fs::read_to_string(alfrc.path()).unwrap();

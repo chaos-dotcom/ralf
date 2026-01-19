@@ -16,7 +16,9 @@ fn save_writes_aliases_and_tip() {
     c.assert()
         .success()
         .stdout(predicate::str::contains("Saving to"))
-        .stdout(predicate::str::contains("To apply the new aliases to the current session, run:"))
+        .stdout(predicate::str::contains(
+            "To apply the new aliases to the current session, run:",
+        ))
         .stdout(predicate::str::contains("$ source"));
     aliases.assert(predicates::path::exists());
 }
@@ -29,8 +31,8 @@ fn save_missing_config_errors() {
     c.current_dir(temp.path())
         .env("ALF_ALIASES_FILE", aliases.path())
         .arg("save");
-    c.assert()
-        .failure()
-        .stdout(predicate::str::starts_with("ERROR: Cannot find config file"));
+    c.assert().failure().stdout(predicate::str::starts_with(
+        "ERROR: Cannot find config file",
+    ));
     aliases.assert(predicates::path::missing());
 }

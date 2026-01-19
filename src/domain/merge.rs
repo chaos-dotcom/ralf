@@ -1,6 +1,5 @@
-
-use std::collections::HashMap;
 use super::model::AliasBlock;
+use std::collections::HashMap;
 
 pub fn merge_blocks(mut base: Vec<AliasBlock>, overlay: Vec<AliasBlock>) -> Vec<AliasBlock> {
     // Index base top-level aliases for quick lookup.

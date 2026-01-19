@@ -13,7 +13,8 @@ pub fn run() -> Result<()> {
         removed.push(crate::paths::friendly(&rc));
     }
     if aliases.exists() {
-        fs::remove_file(&aliases).with_context(|| format!("failed removing {}", aliases.display()))?;
+        fs::remove_file(&aliases)
+            .with_context(|| format!("failed removing {}", aliases.display()))?;
         removed.push(crate::paths::friendly(&aliases));
     }
 
@@ -29,7 +30,11 @@ pub fn run() -> Result<()> {
 
     // Remove fish conf.d stub
     if let Some(home) = dirs::home_dir() {
-        let fish_stub = home.join(".config").join("fish").join("conf.d").join("ralf.fish");
+        let fish_stub = home
+            .join(".config")
+            .join("fish")
+            .join("conf.d")
+            .join("ralf.fish");
         if fish_stub.exists() {
             let _ = fs::remove_file(&fish_stub);
             removed.push(crate::paths::friendly(&fish_stub));
@@ -69,7 +74,12 @@ pub fn run() -> Result<()> {
     }
 
     if let Some(repo_path) = repo {
-        for f in [".ralf_machine", "ralf.local.conf", ".alf_machine", "alf.local.conf"] {
+        for f in [
+            ".ralf_machine",
+            "ralf.local.conf",
+            ".alf_machine",
+            "alf.local.conf",
+        ] {
             let p = repo_path.join(f);
             if p.exists() {
                 let _ = fs::remove_file(&p);

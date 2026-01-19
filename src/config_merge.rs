@@ -1,10 +1,9 @@
+use crate::domain::{merge_blocks, parse_text, serialize_blocks, AliasBlock};
 use crate::paths;
 use anyhow::Result;
-use crate::domain::{AliasBlock, parse_text, merge_blocks, serialize_blocks};
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-
 
 pub fn resolve_machine_id(p: &paths::Paths) -> String {
     // 1) Repo marker wins
@@ -121,6 +120,3 @@ pub fn load_and_merge_model(p: &paths::Paths) -> Result<Vec<AliasBlock>> {
     }
     Ok(blocks)
 }
-
-
-

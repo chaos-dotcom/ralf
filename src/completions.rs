@@ -90,20 +90,33 @@ pub fn generate_fish_completions_from_text(text: &str) -> Result<String> {
     for line in text.lines() {
         if let Some(c) = ali1_re.captures(line) {
             if let Some(a) = current_ali1.take() {
-                if !comps.is_empty() {
-                    out.push_str(&format!("complete -c {} -f -a \"{}\"\n", a, comps.join(" ")));
+                if !comps.is_empty() && !crate::generator::is_reserved_fish(&a) {
+                    out.push_str(&format!(
+                        "complete -c {} -f -a \"{}\"\n",
+                        a,
+                        comps.join(" ")
+                    ));
                 }
                 comps.clear();
             }
-            current_ali1 = Some(c.get(1).unwrap().as_str().to_string());
+            let candidate = c.get(1).unwrap().as_str();
+            if crate::generator::is_reserved_fish(candidate) {
+                current_ali1 = None;
+            } else {
+                current_ali1 = Some(candidate.to_string());
+            }
         } else if let Some(c) = ali2_re.captures(line) {
             comps.push(c.get(1).unwrap().as_str().to_string());
         }
     }
 
     if let Some(a) = current_ali1 {
-        if !comps.is_empty() {
-            out.push_str(&format!("complete -c {} -f -a \"{}\"\n", a, comps.join(" ")));
+        if !comps.is_empty() && !crate::generator::is_reserved_fish(&a) {
+            out.push_str(&format!(
+                "complete -c {} -f -a \"{}\"\n",
+                a,
+                comps.join(" ")
+            ));
         }
     }
 

@@ -25,19 +25,37 @@ pub fn run() -> Result<()> {
         let sel = crate::tui::select("ralf — choose an action", &items)?;
         match sel {
             Some(0) => {
-                if let Some(repo) = crate::tui::input("Enter repository (user[/repo] or full URL), Esc to cancel")? {
+                if let Some(repo) =
+                    crate::tui::input("Enter repository (user[/repo] or full URL), Esc to cancel")?
+                {
                     run_child_passthrough(&["connect", &repo, "--tui"])?;
                 }
             }
-            Some(1) => { run_child_capture(&["download"])?; }
-            Some(2) => { run_child_capture(&["upload"])?; }
-            Some(3) => { run_child_capture(&["generate"])?; }
-            Some(4) => { run_child_capture(&["save"])?; }
-            Some(5) => { run_child_passthrough(&["edit"])?; }
-            Some(6) => { run_child_passthrough(&["edit", "machine"])?; }
+            Some(1) => {
+                run_child_capture(&["download"])?;
+            }
+            Some(2) => {
+                run_child_capture(&["upload"])?;
+            }
+            Some(3) => {
+                run_child_capture(&["generate"])?;
+            }
+            Some(4) => {
+                run_child_capture(&["save"])?;
+            }
+            Some(5) => {
+                run_child_passthrough(&["edit"])?;
+            }
+            Some(6) => {
+                run_child_passthrough(&["edit", "machine"])?;
+            }
             Some(7) => {
-                if let Some(code) = crate::tui::input("Enter alias code (top-level), Esc to cancel")? {
-                    let sub = crate::tui::input("Enter subcommand (optional), Enter for none, Esc to cancel")?;
+                if let Some(code) =
+                    crate::tui::input("Enter alias code (top-level), Esc to cancel")?
+                {
+                    let sub = crate::tui::input(
+                        "Enter subcommand (optional), Enter for none, Esc to cancel",
+                    )?;
                     if let Some(s) = sub.filter(|s| !s.is_empty()) {
                         run_child_capture(&["which", &code, &s])?;
                     } else {
@@ -47,7 +65,9 @@ pub fn run() -> Result<()> {
             }
             Some(8) => {
                 // Machine: prompt to set, or show current if blank
-                if let Some(mut name) = crate::tui::input("Enter machine name to set, Enter to show current, Esc to cancel")? {
+                if let Some(mut name) = crate::tui::input(
+                    "Enter machine name to set, Enter to show current, Esc to cancel",
+                )? {
                     name = name.trim().to_string();
                     if name.is_empty() {
                         run_child_capture(&["machine"])?;
@@ -56,8 +76,12 @@ pub fn run() -> Result<()> {
                     }
                 }
             }
-            Some(9) => { run_child_capture(&["info"])?; }
-            Some(10) => { run_child_capture(&["help"])?; }
+            Some(9) => {
+                run_child_capture(&["info"])?;
+            }
+            Some(10) => {
+                run_child_capture(&["help"])?;
+            }
             Some(11) => {
                 // Clean: confirm optional purge
                 let purge = crate::tui::confirm("Also delete the connected repo directory? [yN]")?;
@@ -67,9 +91,15 @@ pub fn run() -> Result<()> {
                     run_child_capture(&["clean"])?;
                 }
             }
-            Some(12) => { run_child_capture(&["reset"])?; }
-            Some(13) => { run_child_capture(&["upgrade"])?; }
-            Some(14) => { run_theme_settings()?; }
+            Some(12) => {
+                run_child_capture(&["reset"])?;
+            }
+            Some(13) => {
+                run_child_capture(&["upgrade"])?;
+            }
+            Some(14) => {
+                run_theme_settings()?;
+            }
             Some(15) | None => break,
             _ => {}
         }
@@ -100,26 +130,38 @@ fn run_child_capture(args: &[&str]) -> Result<()> {
             body.push_str("Done.");
         } else {
             body.push_str(&stdout_s);
-            if !body.ends_with('\n') { body.push('\n'); }
+            if !body.ends_with('\n') {
+                body.push('\n');
+            }
         }
         if !stderr_s.is_empty() {
-            if !body.ends_with('\n') { body.push('\n'); }
+            if !body.ends_with('\n') {
+                body.push('\n');
+            }
             body.push_str("Warnings:\n");
             body.push_str(&stderr_s);
-            if !body.ends_with('\n') { body.push('\n'); }
+            if !body.ends_with('\n') {
+                body.push('\n');
+            }
         }
     } else {
         title = format!("Error (code {})", code);
         if !stderr_s.is_empty() {
             body.push_str("Error:\n");
             body.push_str(&stderr_s);
-            if !body.ends_with('\n') { body.push('\n'); }
+            if !body.ends_with('\n') {
+                body.push('\n');
+            }
         }
         if !stdout_s.is_empty() {
-            if !body.ends_with('\n') { body.push('\n'); }
+            if !body.ends_with('\n') {
+                body.push('\n');
+            }
             body.push_str("Output:\n");
             body.push_str(&stdout_s);
-            if !body.ends_with('\n') { body.push('\n'); }
+            if !body.ends_with('\n') {
+                body.push('\n');
+            }
         }
         if stderr_s.is_empty() && stdout_s.is_empty() {
             body.push_str(&format!("Command failed (code {}).", code));

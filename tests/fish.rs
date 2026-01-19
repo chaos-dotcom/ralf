@@ -28,10 +28,16 @@ fn fish_can_use_generated_aliases() {
     // Run a fish one-liner to source and execute "say again fish-works"
     let out = Command::new("fish")
         .arg("-lc")
-        .arg(format!("source {}; say again fish-works", aliases.path().display()))
+        .arg(format!(
+            "source {}; say again fish-works",
+            aliases.path().display()
+        ))
         .output()
         .unwrap();
 
     assert!(out.status.success());
-    assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "fish-works fish-works");
+    assert_eq!(
+        String::from_utf8_lossy(&out.stdout).trim(),
+        "fish-works fish-works"
+    );
 }

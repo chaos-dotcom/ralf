@@ -13,7 +13,11 @@ pub fn run() -> Result<()> {
             .current_dir(&p.repo_path)
             .output()?;
         let s = String::from_utf8_lossy(&out.stdout).trim().to_string();
-        if s.is_empty() { "unset".into() } else { s }
+        if s.is_empty() {
+            "unset".into()
+        } else {
+            s
+        }
     } else {
         "unset".into()
     };
@@ -24,12 +28,20 @@ pub fn run() -> Result<()> {
     } else {
         "does not exist".into()
     };
-    let aliases_status = if p.aliases_file.exists() { "exists" } else { "does not exist" };
+    let aliases_status = if p.aliases_file.exists() {
+        "exists"
+    } else {
+        "does not exist"
+    };
 
     // Executable path (command -v ralf)
     let exe = which("ralf")
         .map(|p| p.to_string_lossy().to_string())
-        .unwrap_or_else(|_| std::env::current_exe().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|_| "unknown".into()));
+        .unwrap_or_else(|_| {
+            std::env::current_exe()
+                .map(|p| p.to_string_lossy().to_string())
+                .unwrap_or_else(|_| "unknown".into())
+        });
 
     // Print (match bash spacing/text)
     println!("Executable:");

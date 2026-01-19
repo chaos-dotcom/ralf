@@ -27,7 +27,11 @@ pub fn run(purge: bool) -> Result<()> {
     // Remove init stubs/snippets
     if let Some(home) = dirs::home_dir() {
         // fish conf.d stub
-        let fish_stub = home.join(".config").join("fish").join("conf.d").join("ralf.fish");
+        let fish_stub = home
+            .join(".config")
+            .join("fish")
+            .join("conf.d")
+            .join("ralf.fish");
         if fish_stub.exists() {
             let _ = fs::remove_file(&fish_stub);
             removed.push(crate::paths::friendly(&fish_stub));
@@ -69,7 +73,11 @@ pub fn run(purge: bool) -> Result<()> {
             let _ = fs::remove_dir_all(&cfg);
             removed.push(crate::paths::friendly(&cfg));
         }
-    } else if cfg.exists() && fs::read_dir(&cfg).map(|mut it| it.next().is_none()).unwrap_or(false) {
+    } else if cfg.exists()
+        && fs::read_dir(&cfg)
+            .map(|mut it| it.next().is_none())
+            .unwrap_or(false)
+    {
         let _ = fs::remove_dir(&cfg);
         removed.push(crate::paths::friendly(&cfg));
     }
@@ -80,13 +88,19 @@ pub fn run(purge: bool) -> Result<()> {
         removed.push(crate::paths::friendly(&rc));
     }
     if aliases.exists() {
-        fs::remove_file(&aliases).with_context(|| format!("failed removing {}", aliases.display()))?;
+        fs::remove_file(&aliases)
+            .with_context(|| format!("failed removing {}", aliases.display()))?;
         removed.push(crate::paths::friendly(&aliases));
     }
 
     // Remove repo-local markers
     if let Some(repo_path) = &repo {
-        for f in [".ralf_machine", "ralf.local.conf", ".alf_machine", "alf.local.conf"] {
+        for f in [
+            ".ralf_machine",
+            "ralf.local.conf",
+            ".alf_machine",
+            "alf.local.conf",
+        ] {
             let p = repo_path.join(f);
             if p.exists() {
                 let _ = fs::remove_file(&p);
@@ -104,10 +118,14 @@ pub fn run(purge: bool) -> Result<()> {
                     .map(|n| n == "ralf-conf" || n == "alf-conf")
                     .unwrap_or(false);
                 if ok_name {
-                    fs::remove_dir_all(&repo_path).with_context(|| format!("failed removing {}", repo_path.display()))?;
+                    fs::remove_dir_all(&repo_path)
+                        .with_context(|| format!("failed removing {}", repo_path.display()))?;
                     removed.push(crate::paths::friendly(&repo_path));
                 } else {
-                    eprintln!("Skipping repo deletion: not a ralf-conf/alf-conf dir ({})", repo_path.display());
+                    eprintln!(
+                        "Skipping repo deletion: not a ralf-conf/alf-conf dir ({})",
+                        repo_path.display()
+                    );
                 }
             }
         }

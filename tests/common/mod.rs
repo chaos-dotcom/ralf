@@ -13,7 +13,9 @@ pub fn cmd() -> Command {
 }
 
 pub fn fixtures_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("bash-test").join("fixtures")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("bash-test")
+        .join("fixtures")
 }
 
 pub fn copy_fixture_to(temp: &TempDir, rel: &str, dest_name: &str) -> PathBuf {
