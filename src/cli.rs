@@ -4,7 +4,8 @@ use clap::{Args, Parser, Subcommand};
 #[command(
     name = "ralf",
     version,
-    about = "Your Little Rusty Bash & zsh Alias Friend"
+    about = "Your Little Rusty Bash & zsh Alias Friend",
+    disable_help_subcommand = true
 )]
 pub struct Cli {
     #[command(subcommand)]
