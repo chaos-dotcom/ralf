@@ -15,7 +15,7 @@ jobs:
   make-linux-binary:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/catthehacker/ubuntu:rust-22.04
+      image: git.fetchbroadcast.tools/infra/ubuntu-runner-24:latest
     steps:
       - name: Checkout repository (via HTTPS API)
         uses: actions/checkout@v4
