@@ -28,7 +28,7 @@ fn connect_https_username_noninteractive() {
         .stdout(predicate::str::contains("Saving to"));
 
     let rc_content = fs::read_to_string(alfrc.path()).unwrap();
-    assert!(rc_content.ends_with("/ralf-conf") || rc_content.ends_with("\\ralf-conf"));
+    assert!(rc_content.trim_end().ends_with("/ralf-conf") || rc_content.trim_end().ends_with("\\ralf-conf"));
     aliases.assert(predicates::path::exists());
 }
 
@@ -59,5 +59,5 @@ fn connect_full_url_yes() {
         .stdout(predicate::str::contains("Saving to"));
     let rc_content = std::fs::read_to_string(alfrc.path()).unwrap();
     // Migrated to ralf-conf
-    assert!(rc_content.ends_with("/ralf-conf") || rc_content.ends_with("\\ralf-conf"));
+    assert!(rc_content.trim_end().ends_with("/ralf-conf") || rc_content.trim_end().ends_with("\\ralf-conf"));
 }
